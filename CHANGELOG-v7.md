@@ -518,6 +518,7 @@ should change the heading of the (upcoming) version to include a major version b
 - **BREAKING CHANGE:** `localToUTC()` takes `unknown` and returns `string | null | undefined`, where its inferred return type was `string | undefined`. It has always returned `null` for a value `Date` can't read, since `toJSON()` gives `null` for an invalid date though its type says `string`; a caller that assigns the result to `string | undefined` must now handle `null`, as the [v7 upgrade guide](https://rjsf-team.github.io/react-jsonschema-form/docs/migration-guides/v7.x%20upgrade%20guide#localtoutc-can-return-null-breaking-change) shows
 - **BREAKING CHANGE:** `shouldRenderOptionalField()` takes the field's `fieldPath` as a required fifth argument, and its fourth, `uiSchema`, is no longer optional. It returns `false` for the root field, `ROOT_FIELD_PATH`
 - `retrieveSchema()` is up to twice as fast on a schema with no `$ref`
+- **BREAKING CHANGE:** Removed `isRootSchema()`. It decided whether a schema was the root by deep-comparing it with the root schema, which costs two whole-schema comparisons per call and mistakes a nested field that a recursive `$ref: '#'` describes for the root. Compare the field's `fieldPath` with `ROOT_FIELD_PATH` instead
 
 ## @rjsf/validator-ajv8
 
