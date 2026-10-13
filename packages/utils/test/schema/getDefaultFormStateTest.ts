@@ -1796,6 +1796,35 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
           ).toEqual({ p: { a: 'x' } });
         });
 
+        test('a dependencies branch that is a $ref to another definition', () => {
+          // The schema's own reference - it stood beside an `allOf` - joins the path the dependency resolves
+          // against, and the definition the branch materializes joins the list the merged schema computes
+          // against: both end up on it, the dependency's from the entry and the schema's from the path
+          const Extra: RJSFSchema = { type: 'object', properties: { b: { type: 'string', default: 'B' } } };
+          const Outer: RJSFSchema = {
+            type: 'object',
+            properties: { a: { type: 'string' } },
+            dependencies: { a: { $ref: '#/definitions/Extra' } },
+          };
+          const schema: RJSFSchema = {
+            definitions: { Extra, Outer },
+            type: 'object',
+            allOf: [
+              {
+                properties: {
+                  p: { $ref: '#/definitions/Outer', allOf: [{ properties: { c: { type: 'string' } } }] },
+                },
+              },
+            ],
+          };
+          expect(
+            getDefaultFormState(
+              { validator: testValidator, defaultFormStateBehavior: { allOf: 'populateDefaults' } },
+              { schema, rootSchema: schema, formData: { p: { a: 'x' } } },
+            ),
+          ).toEqual({ p: { a: 'x', b: 'B' } });
+        });
+
         describe('a $ref with a branch keyword beside it', () => {
           // The branch stood beside the `$ref`, so the schema the resolve materialized keeps the keyword and the
           // marker of where it came from: the retrieve that resolves the keyword reads the path without that
