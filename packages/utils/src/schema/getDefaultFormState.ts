@@ -726,10 +726,21 @@ export function getObjectDefaults<
     // A property the retrieve materialized from a `$ref` (a `then`/`else` branch holding one) carries its
     // source reference: it joins the path the properties compute against, so the definition's own content
     // below reads its reappearance inside the branch as the recursion it is.
-    const materializedRefs = Object.values(retrievedSchema.properties ?? {})
-      .filter((value) => isObject(value) && Reflect.get(value, REF_SIBLING_BRANCHES) === undefined)
-      .map((value) => resolvedFromRef<S>(value as S))
-      .filter((ref): ref is string => ref !== undefined && !_recurseList.includes(ref));
+    // The retrieve's own `allOf` merge materializes the schema itself from a reference: that expansion joins
+    // the path too. A schema the retrieve left untouched keeps its arrival reference off the path, the way
+    // `computeDefaults()` hands it down.
+    const mergedRef =
+      shouldRetrieveSchema && Reflect.get(retrievedSchema, REF_SIBLING_BRANCHES) === undefined
+        ? resolvedFromRef<S>(retrievedSchema)
+        : undefined;
+    const materializedRefs = (mergedRef ? [mergedRef] : [])
+      .concat(
+        Object.values(retrievedSchema.properties ?? {})
+          .filter((value) => isObject(value) && Reflect.get(value, REF_SIBLING_BRANCHES) === undefined)
+          .map((value) => resolvedFromRef<S>(value as S))
+          .filter((ref): ref is string => ref !== undefined),
+      )
+      .filter((ref, idx, all) => all.indexOf(ref) === idx && !_recurseList.includes(ref));
     const childRecurseList = _recurseList.concat(materializedRefs);
     const parentConst = retrievedSchema[CONST_KEY];
     const objectDefaults = Object.keys(retrievedSchema.properties ?? {}).reduce(
