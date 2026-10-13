@@ -349,6 +349,10 @@ export function computeDefaults<
     if (!_recurseList.includes(refName!)) {
       updatedRecurseList = _recurseList.concat(refName!);
       schemaToCompute = findSchemaDefinition<S>(refName, rootSchema);
+    } else if (!isEmptyFormData(rawFormData)) {
+      // The recursion stops expanding here, but form data reaching this level still gets the level's defaults:
+      // the definition is computed with the list as it stands, so the loop cannot grow past the data it fills.
+      schemaToCompute = findSchemaDefinition<S>(refName, rootSchema);
     }
 
     // If the referenced schema exists and parentDefaults is not set
