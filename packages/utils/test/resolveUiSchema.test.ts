@@ -28,6 +28,20 @@ function makeRegistry(rootSchema: RJSFSchema, uiSchemaDefinitions: UiSchemaDefin
 }
 
 describe('resolveUiSchema() - normalized options', () => {
+  it('applies ui:definitions to a collapsed recursive ref keyed by the author spelling (draft-7 root with $id)', () => {
+    const rootSchema: RJSFSchema = {
+      $id: 'https://ex.com/r.json',
+      definitions: { node: { type: 'object', properties: { child: { $ref: '#/definitions/node' } } } },
+      properties: { n: { $ref: '#/definitions/node' } },
+    };
+    const utils = createSchemaUtils({ validator: testValidator }, rootSchema);
+    const child = (utils.retrieveSchema(rootSchema) as RJSFSchema).properties!.n.properties!.child as RJSFSchema;
+    const result = resolveUiSchema(child, undefined, {
+      rootSchema,
+      uiSchemaDefinitions: { '#/definitions/node': { 'ui:title': 'DEF' } },
+    });
+    expect(result['ui:title']).toEqual('DEF');
+  });
   it('applies ui:definitions to unexpanded anyOf options keyed by the author spelling of their $ref', () => {
     // An unexpanded option carries no ref markers; its object comes from the normalized root with an absolute
     // `$ref`, so the author spelling a `ui:definitions` entry is keyed by is recovered through `originalRefOf`

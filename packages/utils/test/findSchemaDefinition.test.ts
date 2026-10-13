@@ -249,6 +249,47 @@ describe('restoreOriginalRefs()', () => {
     const resolved = utils.retrieveSchema((copy.properties as GenericObjectType).x as RJSFSchema) as RJSFSchema;
     expect(((resolved.properties as GenericObjectType).c as RJSFSchema).title).toEqual('CHILD');
   });
+  it('matches a root $id written with a trailing # against itself (draft-7)', () => {
+    const root: RJSFSchema = {
+      $id: 'http://ex.com/r.json#',
+      definitions: { a: { properties: { b: { $ref: '#/definitions/b' } } }, b: { type: 'string' } },
+      properties: { x: { $ref: '#/definitions/a' } },
+    };
+    const utils = createSchemaUtils({ validator: testValidator }, root);
+    const resolved = utils.retrieveSchema(root) as RJSFSchema;
+    expect(
+      (((resolved.properties as GenericObjectType).x as RJSFSchema).properties as GenericObjectType).b,
+    ).toMatchObject({ type: 'string' });
+  });
+  it('matches a root $id written with a trailing # against itself (2020-12)', () => {
+    const root: RJSFSchema = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      $id: 'http://ex.com/r.json#',
+      $defs: { a: { properties: { b: { $ref: '#/$defs/b' } } }, b: { type: 'string' } },
+      properties: { x: { $ref: '#/$defs/a' } },
+    };
+    const utils = createSchemaUtils({ validator: testValidator }, root);
+    const resolved = utils.retrieveSchema(root) as RJSFSchema;
+    expect(
+      (((resolved.properties as GenericObjectType).x as RJSFSchema).properties as GenericObjectType).b,
+    ).toMatchObject({ type: 'string' });
+  });
+  it('resolves a draft-7 ref migrated into its nested $id resource (embedded lookup runs on every draft)', () => {
+    const root: RJSFSchema = {
+      definitions: {
+        a: {
+          $id: 'http://ex.com/a.json',
+          definitions: { b: { type: 'object', properties: { bb: { type: 'string' } } } },
+          allOf: [{ $ref: '#/definitions/b' }],
+        },
+      },
+      properties: { x: { $ref: '#/definitions/a' } },
+    };
+    const utils = createSchemaUtils({ validator: testValidator }, root);
+    const resolved = utils.retrieveSchema((root.properties as GenericObjectType).x as RJSFSchema) as RJSFSchema;
+    expect(resolved.$id).toEqual('http://ex.com/a.json');
+    expect((resolved.properties as GenericObjectType).bb).toEqual({ type: 'string' });
+  });
   it('reads a root edited in place after a no-op normalization as it now stands', () => {
     const root: RJSFSchema = {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
