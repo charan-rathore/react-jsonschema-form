@@ -1774,6 +1774,36 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
           });
         });
 
+        describe('a $ref with a branch keyword beside it', () => {
+          // The branch stood beside the `$ref`, so the schema the resolve materialized keeps the keyword and the
+          // marker of where it came from: the retrieve that resolves the keyword reads the path without that
+          // reference, and the branch's own use of the definition is a second use rather than a recursion. The
+          // sibling property `q` puts the reference on the path the properties compute against
+          test('an allOf beside the $ref keeps the defaults of both', () => {
+            const Base: RJSFSchema = { type: 'object', properties: { name: { type: 'string', default: 'n' } } };
+            const Outer: RJSFSchema = {
+              type: 'object',
+              properties: {
+                p: {
+                  $ref: '#/definitions/Base',
+                  allOf: [{ properties: { flag: { type: 'string', default: 'on' } } }],
+                },
+                q: { $ref: '#/definitions/Base' },
+              },
+            };
+            const schema: RJSFSchema = {
+              definitions: { Base, Outer },
+              $ref: '#/definitions/Outer',
+            };
+            expect(
+              getDefaultFormState(
+                { validator: testValidator, defaultFormStateBehavior: { allOf: 'populateDefaults' } },
+                { schema, rootSchema: schema },
+              ),
+            ).toEqual({ p: { name: 'n', flag: 'on' }, q: { name: 'n' } });
+          });
+        });
+
         describe('a dependencies branch that stood beside the $ref', () => {
           // A `dependencies` next to the `$ref` is not part of the definition, so its `$ref` back to the same
           // definition is a second use: it resolves, and the sibling branch keeps its own defaults too
