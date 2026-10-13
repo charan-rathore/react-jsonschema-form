@@ -1662,6 +1662,40 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
           });
         });
 
+        describe('form data that meets a recursive dependencies entry', () => {
+          // `v7` fills a level's defaults wherever the form data reaches, so the recursion stopping at the
+          // `$ref` must not leave a supplied level without its defaults
+          const node = {
+            type: 'object',
+            properties: { a: { type: 'string' }, d: { type: 'string', default: 'D' } },
+            dependencies: { a: { properties: { child: { $ref: '#/definitions/node' } } } },
+          } as RJSFSchema;
+          const formData = { a: 'v', child: { a: 'v', child: { a: 'v', child: { a: 'v', child: {} } } } };
+          const expected = {
+            a: 'v',
+            d: 'D',
+            child: {
+              a: 'v',
+              d: 'D',
+              child: { a: 'v', d: 'D', child: { a: 'v', d: 'D', child: {} } },
+            },
+          };
+
+          test.each<[string, RJSFSchema, unknown, unknown]>([
+            ['a root $ref', { definitions: { node }, $ref: '#/definitions/node' }, formData, expected],
+            [
+              'a $ref reached through a property',
+              { definitions: { node }, type: 'object', properties: { p: { $ref: '#/definitions/node' } } },
+              { p: formData },
+              { p: expected },
+            ],
+          ])('every supplied level keeps its defaults, from %s', (_, schema, data, defaults) => {
+            expect(
+              getDefaultFormState({ validator: testValidator }, { schema, rootSchema: schema, formData: data }),
+            ).toEqual(defaults);
+          });
+        });
+
         describe('a dependencies branch that stood beside the $ref', () => {
           // A `dependencies` next to the `$ref` is not part of the definition, so its `$ref` back to the same
           // definition is a second use: it resolves, and the sibling branch keeps its own defaults too
@@ -1717,10 +1751,12 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
 
           test('the raw definition, a $ref to it, and getDefaultFormState agree', () => {
             expect(computeDefaults({ validator: testValidator }, node, { rootSchema })).toEqual(expected);
-            expect(computeDefaults({ validator: testValidator }, { $ref: '#/definitions/node' }, { rootSchema })).toEqual(
+            expect(
+              computeDefaults({ validator: testValidator }, { $ref: '#/definitions/node' }, { rootSchema }),
+            ).toEqual(expected);
+            expect(getDefaultFormState({ validator: testValidator }, { schema: rootSchema, rootSchema })).toEqual(
               expected,
             );
-            expect(getDefaultFormState({ validator: testValidator }, { schema: rootSchema, rootSchema })).toEqual(expected);
           });
         });
 
