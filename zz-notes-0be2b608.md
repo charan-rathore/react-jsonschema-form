@@ -31,3 +31,22 @@
 
 full suites (utils 100/100/100/100 coverage gate), DROP zz-* files, force-push fix/recursive-ref-via-keyword-5501
 (head d00d8ffe), 10 thread replies (heath style: describe the code, "Fixed in <sha>").
+
+## UPDATE 19:13 - ALL 1029 PASS (de7d72ac). Remaining before the PR:
+
+1. COVERAGE GATE (100/100/100/100) currently fails on the wip. Uncovered:
+   - getDefaultFormState.ts:717 - getObjectDefaults retrieve ternary TRUE branch (REF_SIBLING_BRANCHES filter of
+     own ref from retrieveList). Cover with: p: {$ref: Base, allOf: [{properties: {flag:...}}]} + behavior
+     allOf: populateDefaults (materialized p keeps ALL_OF + sibling marker into getObjectDefaults' retrieve).
+   - retrieveSchema.ts:609 - branchClosesOnPath non-object input (boolean subschema under a flagged cycle's
+     closing walk, e.g. a boolean additionalProperties inside the recursion).
+   - retrieveSchema.ts:627 - the siblings fallback: a $ref whose DEFINITION does not close on the path but whose
+     SIBLINGS do (ref to a plain def + if/then beside it holding the recursive ref).
+   - retrieveSchema.ts:631 - check the line; same function family.
+2. #5501 SchemaField tests + 773 regression test (heath's pins), changelog to CHANGELOG-v7.md.
+3. Full suites: utils vitest --coverage (gate) + core vitest + snap update if needed; oxlint/oxfmt via pre-commit.
+4. DROP zz-* files; force-push fix/recursive-ref-via-keyword-5501 (PR head d00d8ffe); 10 thread replies,
+   heath style: describe the code not the change, "Fixed in <sha>".
+5. The 3 mechanisms that fixed 13->0 (for the replies): (a) deps-entry path seeding (dependenciesPath +
+   entryRef + materialized property refs), (b) getObjectDefaults materializedRefs seed (properties + the
+   retrieve's own allOf merge marker, skipping REF_SIBLING_BRANCHES carriers), (c) getArrayDefaults itemsRef seed.
