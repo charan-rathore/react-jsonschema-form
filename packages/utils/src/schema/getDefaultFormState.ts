@@ -2,6 +2,7 @@ import type { JSONSchema7Object } from 'json-schema';
 
 import {
   ADDITIONAL_PROPERTIES_KEY,
+  PROPERTIES_KEY,
   ADDITIONAL_PROPERTY_FLAG,
   ALL_OF_KEY,
   CONST_KEY,
@@ -412,6 +413,21 @@ export function computeDefaults<
       defaultFormData,
     );
     [schemaToCompute] = resolvedSchema; // pick the first element from resolve dependencies
+    // An entry that is itself a `$ref` materializes the definition into the merged schema: that expansion joins
+    // the path, so the definition's own content below does not resolve the same entry back in.
+    const entryRef = resolvedFromRef<S>(schemaToCompute ?? undefined);
+    if (entryRef && !updatedRecurseList.includes(entryRef)) {
+      updatedRecurseList = updatedRecurseList.concat(entryRef);
+    }
+    // An entry holding a `$ref` among its properties has it expanded by the resolve: the reference each
+    // materialized property came from joins the path, so the definition's own content below reads its
+    // reappearance in the entry as the recursion it is.
+    for (const value of Object.values(schemaToCompute?.[PROPERTIES_KEY] ?? {})) {
+      const propertyRef = resolvedFromRef<S>(value as S);
+      if (propertyRef && !updatedRecurseList.includes(propertyRef)) {
+        updatedRecurseList = updatedRecurseList.concat(propertyRef);
+      }
+    }
     updatedRecurseList = dependenciesPath.reduce(
       (list: string[], ref: string) => (list.includes(ref) ? list : list.concat(ref)),
       updatedRecurseList,
