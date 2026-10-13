@@ -399,15 +399,23 @@ export function computeDefaults<
         : getDefaultBasedOnSchemaType(context, schema, computeDefaultsProps, defaults);
     const objectDefaults: GenericObjectType = isObject(schemaDefaults) ? schemaDefaults : {};
     const defaultFormData: T = { ...objectDefaults, ...formData };
+    // The path an entry resolves against is the path its merged schema computes against: the entry's content
+    // is the definition's own, so the reference that materialized this schema stays on it, and a `$ref` the
+    // entry holds back to that definition reads as the recursion it is rather than expanding one more level.
+    const dependenciesPath = enclosingRefPath<S>(schema, _recurseList, DEPENDENCIES_KEY);
     const resolvedSchema = resolveDependencies<T, S, F>(
       context,
       schema,
       rootSchema,
       false,
-      enclosingRefPath<S>(schema, _recurseList, DEPENDENCIES_KEY),
+      dependenciesPath,
       defaultFormData,
     );
     [schemaToCompute] = resolvedSchema; // pick the first element from resolve dependencies
+    updatedRecurseList = dependenciesPath.reduce(
+      (list: string[], ref: string) => (list.includes(ref) ? list : list.concat(ref)),
+      updatedRecurseList,
+    );
   } else if (isFixedItems(schema) && !preferParentDefaults) {
     // If the schema contains fixed items and parentDefaults does not have precedence
     // Then construct defaults from defaults of array items.
@@ -526,16 +534,18 @@ export function computeDefaults<
     }
   }
 
-  const defaultBasedOnSchemaType = isCycle ? undefined : getDefaultBasedOnSchemaType(
-    context,
-    schema,
-    // The path the type-based computation descends with: what this call expanded joins it, while the reference
-    // the schema arrived resolved from stays off it, so a recursion stops at the depth it always stopped at,
-    // wherever the definition was referenced from.
-    { ...computeDefaultsProps, _recurseList: updatedRecurseList },
-    defaults,
-    isWholeValue,
-  );
+  const defaultBasedOnSchemaType = isCycle
+    ? undefined
+    : getDefaultBasedOnSchemaType(
+        context,
+        schema,
+        // The path the type-based computation descends with: what this call expanded joins it, while the reference
+        // the schema arrived resolved from stays off it, so a recursion stops at the depth it always stopped at,
+        // wherever the definition was referenced from.
+        { ...computeDefaultsProps, _recurseList: updatedRecurseList },
+        defaults,
+        isWholeValue,
+      );
 
   let defaultsWithFormData = defaultBasedOnSchemaType ?? defaults;
   // if shouldMergeDefaultsIntoFormData is true, then merge the defaults into the formData.
@@ -677,8 +687,7 @@ export function getObjectDefaults<
     // below stops. The retrieve of THIS level is the one expansion still due, so the seeds come back off for it;
     // they stay on for the children computed below.
     const cycleSeed = (schema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] === true ? closingRefsOf<S>(schema) : [];
-    const retrieveList =
-      cycleSeed.length > 0 ? _recurseList.filter((ref) => !cycleSeed.includes(ref)) : _recurseList;
+    const retrieveList = cycleSeed.length > 0 ? _recurseList.filter((ref) => !cycleSeed.includes(ref)) : _recurseList;
     const [retrievedSchema] = shouldRetrieveSchema
       ? retrieveSchemaInternal<T, S, F>(
           context,
