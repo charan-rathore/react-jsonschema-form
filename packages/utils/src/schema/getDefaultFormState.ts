@@ -723,7 +723,14 @@ export function getObjectDefaults<
     // object as a recursion (the shared-ref false cycle of #5434 on the defaults side), and the genuine recursion -
     // a definition whose own content leads back to it - already arrives flagged by the retrieve as
     // `RJSF_REF_CYCLE_KEY`, which `computeDefaults()` stops at.
-    const childRecurseList = _recurseList;
+    // A property the retrieve materialized from a `$ref` (a `then`/`else` branch holding one) carries its
+    // source reference: it joins the path the properties compute against, so the definition's own content
+    // below reads its reappearance inside the branch as the recursion it is.
+    const materializedRefs = Object.values(retrievedSchema.properties ?? {})
+      .filter((value) => isObject(value) && Reflect.get(value, REF_SIBLING_BRANCHES) === undefined)
+      .map((value) => resolvedFromRef<S>(value as S))
+      .filter((ref): ref is string => ref !== undefined && !_recurseList.includes(ref));
+    const childRecurseList = _recurseList.concat(materializedRefs);
     const parentConst = retrievedSchema[CONST_KEY];
     const objectDefaults = Object.keys(retrievedSchema.properties ?? {}).reduce(
       (acc: GenericObjectType, key: string) => {
