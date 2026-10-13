@@ -572,6 +572,93 @@ class ReferenceTally {
   }
 }
 
+
+/** Whether an `if` schema is one empty data satisfies, so the `then` beside it renders without any data. An empty
+ * schema (or `true`) holds for every value; anything with keys is assumed to withhold the branch until data matches,
+ * which bounds the recursion by the data the way array items are bounded.
+ */
+function ifHoldsForEmptyData<S extends StrictRJSFSchema = RJSFSchema>(ifSchema: S | boolean | undefined): boolean {
+  return ifSchema === true || (isObject(ifSchema) && Object.keys(ifSchema).length === 0);
+}
+
+/** Does rendering `schema` reach a `$ref` on `targets` (the refs already being expanded on the current resolution
+ * path) without any data existing? Only the positions a form renders with no data count: `properties` are always
+ * rendered, `allOf` entries are always merged in, and a `then` (`else`) branch renders when its `if` holds (fails)
+ * for empty data. `items`, `additionalProperties`, `patternProperties` and `anyOf`/`oneOf` options all wait for
+ * data, so a cycle through them cannot loop the render and they are not followed. A `$ref` that is not itself on
+ * the path is followed into its definition, since expanding it is exactly what rendering does; the visited set
+ * keeps that search finite, and hits still count only against the original path, so an ordinary recursive
+ * definition referenced from here (whose own cycle is flagged at its own level) does not flag this schema.
+ *
+ * @param schema - The schema to search
+ * @param targets - The refs already being expanded on the current resolution path
+ * @param rootSchema - The root schema, for reading the definition a followed `$ref` names
+ * @param baseURI - The base URI relative references resolve against
+ * @param [visited] - The refs this search already followed, so the search terminates on reference DAGs
+ * @returns - true when a `$ref` on the path is reachable from `schema` through positions that render without data
+ */
+function branchClosesOnPath<S extends StrictRJSFSchema = RJSFSchema>(
+  schema: S,
+  targets: ReadonlySet<string>,
+  rootSchema: S,
+  baseURI?: string,
+  visited: Set<string> = new Set(),
+  ownRef?: string,
+): boolean {
+  if (!isObject(schema)) {
+    return false;
+  }
+  const ref = declaredRef<S>(schema);
+  if (ref !== undefined) {
+    // The schema's own source ref is not a recursion: a branch reaching for the definition this schema was itself
+    // resolved from is a second use of it, and the expansion that put the definition on the path already counted it
+    if (ref !== ownRef && targets.has(ref)) {
+      return true;
+    }
+    if (visited.has(ref)) {
+      return false;
+    }
+    visited.add(ref);
+    let definition: S | undefined;
+    try {
+      definition = findSchemaDefinition<S>(ref, rootSchema, baseURI);
+    } catch {
+      // A reference that does not resolve here throws where it is actually expanded, as it did before
+      return false;
+    }
+    const { [REF_KEY]: _ref, ...siblings } = schema;
+    if (branchClosesOnPath<S>(definition, targets, rootSchema, baseURI, visited, ownRef)) {
+      return true;
+    }
+    return branchClosesOnPath<S>(siblings as S, targets, rootSchema, baseURI, visited, ownRef);
+  }
+  const { properties } = schema;
+  if (isPlainObject(properties)) {
+    for (const value of Object.values(properties)) {
+      if (branchClosesOnPath<S>(value as S, targets, rootSchema, baseURI, visited, ownRef)) {
+        return true;
+      }
+    }
+  }
+  if (Array.isArray(schema[ALL_OF_KEY])) {
+    for (const entry of schema[ALL_OF_KEY] as S[]) {
+      if (branchClosesOnPath<S>(entry, targets, rootSchema, baseURI, visited, ownRef)) {
+        return true;
+      }
+    }
+  }
+  if (IF_KEY in schema) {
+    const branch = (ifHoldsForEmptyData<S>(schema[IF_KEY] as S | boolean) ? schema[THEN_KEY] : schema[ELSE_KEY]) as
+      | S
+      | boolean
+      | undefined;
+    if (isObject(branch) && branchClosesOnPath<S>(branch as S, targets, rootSchema, baseURI, visited, ownRef)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Resolves all references within the schema itself as well as any of its properties and array items.
  *
  * @param schema - The schema for which resolving all references is desired
@@ -708,6 +795,27 @@ export function resolveAllReferences<S extends StrictRJSFSchema = RJSFSchema>(
         tally,
       ),
     };
+  }
+
+  // A recursion a property reaches through a keyword on the property itself - an `allOf` entry or a
+  // `then`/`else` branch leading back to a definition on the path - loops the render just as a property `$ref`
+  // does: the branch is not walked here (expanding it is what the `allOf` merge and `resolveCondition()` do with
+  // the path threaded through), but its content is searched for a `$ref` that closes on the path, and the schema
+  // holding it is flagged so `SchemaField` renders the cycle indicator instead of nesting fields until the heap
+  // runs out. The search covers the branch's nested keywords and the definitions of the refs it follows, so a
+  // cycle that closes through a second definition is caught as well.
+  if (
+    markCycleOnDetection &&
+    pathList.length > 0 &&
+    (resolvedSchema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] !== true &&
+    (ALL_OF_KEY in resolvedSchema || THEN_KEY in resolvedSchema || ELSE_KEY in resolvedSchema) &&
+    branchClosesOnPath<S>(resolvedSchema, new Set(pathList), rootSchema, currentBaseURI, undefined, resolvedFromRef<S>(resolvedSchema))
+  ) {
+    // Counted when newly set, so the levels above hand the flagged copy back rather than the schema they were
+    // given, on any pass: a branch of a definition reached through a `$ref` is only ever resolved on a re-walk,
+    // and the flag is the walk's only change to it
+    tally.count();
+    resolvedSchema = { ...resolvedSchema, [RJSF_REF_CYCLE_KEY]: true };
   }
 
   if (resolveAnyOfOrOneOfRefs) {

@@ -10,6 +10,7 @@ import {
   IF_KEY,
   ONE_OF_KEY,
   REF_KEY,
+  RJSF_REF_CYCLE_KEY,
   UI_DEFINITIONS_KEY,
 } from '../constants.ts';
 import constIsAjvDataReference from '../constIsAjvDataReference.ts';
@@ -303,11 +304,17 @@ export function computeDefaults<
   // If we get a new schema, then we need to recompute defaults again for the new schema found.
   let schemaToCompute: S | null = null;
   let contextToCompute = context;
-  // Seed the path with the reference this schema was itself resolved from, so a `$ref` back to it from anywhere in
-  // what the definition holds reads as a recursion however deep the branch that carries it sits (#5493). Branches
-  // that stood beside the `$ref` re-derive their own path with the keyword they are entered through, since a `$ref`
-  // back to the same definition from one of those is a second use, not a recursion.
-  let updatedRecurseList = enclosingRefPath<S>(schema, _recurseList);
+  // The path starts as the caller handed it down: the reference this schema was itself resolved from is NOT added
+  // here. The caller's retrieve is what expanded that `$ref` (the way the `$ref` branch below expands one), so it
+  // already sits on the handed-down path when the expansion happened on this descent -- and when the caller's
+  // retrieve ran ahead of the whole computation (the root retrieve of `getDefaultFormState()`), counting it here
+  // would stop a plain recursive schema a level earlier than it did before the path tracking existed, and would
+  // make the stopping depth depend on where the definition is referenced from. What joins the path below is what
+  // THIS descent expands: the `$ref` branch, the `allOf` merge, and the retrieves `getObjectDefaults()` performs.
+  let updatedRecurseList = _recurseList;
+  // A schema the resolution flagged as a cycle closes the loop: computing below it is what never terminated. The
+  // recursion stops expanding here, but form data reaching this level still gets the level's defaults, computed
+  // with the list as it stands, so the loop cannot grow past the data it fills.
   // Overridden below when a `oneOf`/`anyOf` branch is selected, so that branch's own `uiSchema[keyword][index]`
   // fragment (matching `MultiSchemaField`'s `optionsUiSchema`/`optionUiSchema`) is what its fields see, rather than
   // the parent uiSchema, which is otherwise passed straight through.
@@ -388,7 +395,7 @@ export function computeDefaults<
       computeDefaults<T, S, F>(context, itemSchema, {
         rootSchema,
         includeUndefinedValues,
-        _recurseList,
+        _recurseList: updatedRecurseList,
         parentDefaults: Array.isArray(parentDefaults) ? parentDefaults[idx] : undefined,
         rawFormData: formData,
         required,
@@ -502,11 +509,10 @@ export function computeDefaults<
   const defaultBasedOnSchemaType = getDefaultBasedOnSchemaType(
     context,
     schema,
-    // The reference this schema was itself resolved from stays on the path of everything it holds, so a `$ref`
-    // back to it met at any depth below reads as the recursion. The outermost call is exempt: it is handed the
-    // already-retrieved root, and counting the root's own expansion would stop a plain recursive schema one
-    // level earlier than it does today.
-    { ...computeDefaultsProps, _recurseList: '_recurseList' in inputProps ? updatedRecurseList : _recurseList },
+    // The path the type-based computation descends with: what this call expanded joins it, while the reference
+    // the schema arrived resolved from stays off it, so a recursion stops at the depth it always stopped at,
+    // wherever the definition was referenced from.
+    { ...computeDefaultsProps, _recurseList: updatedRecurseList },
     defaults,
     isWholeValue,
   );
@@ -633,13 +639,12 @@ export function getObjectDefaults<
             : enclosingRefPath<S>(schema, _recurseList),
         )
       : [schema];
-    // A `$ref` the retrieve expanded out of an `allOf` or a `then`/`else` joins the path of everything below, the way
-    // one the `$ref` branch of `computeDefaults()` expands does. The ref `schema` was itself resolved from does not:
-    // it seeds the retrieve above, but one more `$ref` back to it is still followed, as it is without the retrieve
-    const childRecurseList =
-      resolvedFromRef<S>(retrievedSchema) === resolvedFromRef<S>(schema)
-        ? _recurseList
-        : enclosingRefPath<S>(retrievedSchema, _recurseList);
+    // The properties compute against the path as it was handed in: a `$ref` the retrieve expanded out of an `allOf`
+    // or a `then`/`else` does NOT join it. Counting that ref reads any other use of the same definition below this
+    // object as a recursion (the shared-ref false cycle of #5434 on the defaults side), and the genuine recursion -
+    // a definition whose own content leads back to it - already arrives flagged by the retrieve as
+    // `RJSF_REF_CYCLE_KEY`, which `computeDefaults()` stops at.
+    const childRecurseList = _recurseList;
     const parentConst = retrievedSchema[CONST_KEY];
     const objectDefaults = Object.keys(retrievedSchema.properties ?? {}).reduce(
       (acc: GenericObjectType, key: string) => {
