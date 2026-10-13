@@ -72,3 +72,22 @@ RangeError deps-branch check vs v7, changelog move to CHANGELOG-v7.md (last bull
 remove the 3 @rjsf/utils bullets from CHANGELOG.md 6.11.1; rewrite for the new mechanism), drop zz-*, force-push
 fix/recursive-ref-via-keyword-5501, reply "Fixed in <sha>" on jimmy's 10 threads, report. v7 clone lives at
 /tmp/rjsf-v7 @ a054f3231 (wiped on rebuild; zz-probe.test.ts runs against it as-is).
+
+## 20:29 IST - failure (b) root-caused one level deeper
+
+The closingRefsOf deepening changed TWO call sites, but only one should get the deep walk:
+- computeDefaults' cycle-seeding (line ~332): DEEP walk CORRECT - the buried then.properties.x.$ref must seed
+  the path so the content below stops (this fixed 2 of the 4 failures).
+- getObjectDefaults' cycleSeed -> retrieveList removal (line ~708): the seeds come OFF for the level's own
+  retrieve. With the DEEP walk, [node] now comes off for an if/then schema whose closure is buried, so the
+  retrieve (resolveCondition) runs with [] where it used to run with [node] on the path: resolveAllReferences
+  then expands x's $ref into node-def and the nested resolveCondition/retrieveSchemaInternal chain loops
+  (RangeError stack: getObjectDefaults:719 -> resolveCondition -> resolveSchema -> resolveReference ->
+  resolveAllReferences self-recursion) BEFORE any flagged frame is reached - confirmed by a debug log: the
+  passing non-array test logs the cycleSeed retrieve exactly once with list [node]; the array test loops with
+  NO such log (the looping schemas are UNFLAGGED).
+NEXT FIX CANDIDATE (precise): use the SHALLOW closingRefsOf (original: own $ref + allOf entry $refs + direct
+then/else $refs) for getObjectDefaults' cycleSeed/retrieveList removal, and the DEEP walk only for
+computeDefaults' updatedRecurseList seeding. Then verify: the array test produces its expected
+{name:'n', child:[{x:{name:'n', child:[{}]}}]}, the other recursive tests stay green, all 8 probes stay green,
+then the full gate.
