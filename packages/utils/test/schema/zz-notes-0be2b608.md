@@ -107,3 +107,29 @@ sibling IS flagged - heap probes). NEXT RUN, FIRST STEP: probe whether retrieveS
 items; if not, fix the path threading into array items in resolveAllReferences so branchClosesOnPath fires
 there (the flag is what makes the compute-side isCycle stop work). Only then re-attempt the depth-parity
 expectation update (failure a) and run the FULL gate.
+
+## 20:33 IST - ALL recursive tests + full gate GREEN at 180fdac8; ONE new v7-gap found (deps ping-pong)
+
+LANDED in 180fdac8: per-property materializedRefs seeding restored but GATED on shouldRetrieveSchema (this
+frame's own retrieve did the materializing) - the root-retrieve case (P780) does not seed, keyword/array-items
+frames do. Plus: deep closingRefsOf, computeDefaultsProps seed sync, allOf-merge joins the arrival ref only
+when the allOf declares its own $ref. Result: schema.test.ts -t recursive 49/49, FULL utils gate 2844/2844,
+coverage 100/100/100/100, 3 heap shapes flagged, 8 probes green.
+- "stops a recursion under a populated allOf" expectation updated to {t:[[undefined]]}: v7 @ a054f3231 gives
+  {"t":[[null]]} for the plain shape (depth 2) and RangeErrors on the allOf shape - the wip now matches v7's
+  depth on the plain one and terminates on both. Cite this in the 4257411780 reply.
+
+NEW GAP (zz-deps.test.ts, committed): node def with dependencies:{a:{$ref:node}} + formData {p:{a:'x'}}:
+v7 {p:{a:'x'}} FINE; wip RangeErrors. Cause: the REF branch's non-empty-formData case expands with "the list
+as it stands" but the dependencies $ref hands the SAME formData object down, so REF->DEPENDENCIES->REF never
+shrinks the data and never terminates. v7's REF branch skips on ref-in-list regardless of formData. NEXT FIX:
+in the dependencies branch (or the REF branch's formData case), a dependency schema that is a plain $ref
+already on the path must not expand for the same formData - check the DEPENDENCIES branch's path threading
+(lines ~400-450, dependenciesPath/entryRef/propertyRef) and stop the entry when its ref is on the path and the
+formData is unchanged. Verify against v7's {p:{a:'x'}} + the depth test at getDefaultFormStateTest.ts:1900
+(empty formData variant) + full gate.
+
+THEN the ship pipeline: core suite, oxlint/oxfmt pre-commit, changelog move (CHANGELOG-v7.md LAST bullet under
+the package heading; remove 3 bullets from CHANGELOG.md 6.11.1; rewrite for the new mechanism), drop zz-*,
+force-push fix/recursive-ref-via-keyword-5501, 10 thread replies ("Fixed in <sha>", describe code not change,
+never resolve), report. v7 clone /tmp/rjsf-v7 @ a054f3231 (wiped on rebuild).
