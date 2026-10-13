@@ -1,0 +1,1485 @@
+
+ RUN  v5.0.3 /home/sandbox/w5511/packages/utils
+
+ ❯ test/schema.test.ts (1029 tests | 13 failed) 482ms
+   ✓ findFieldInSchema (14)
+     ✓ returns NOT_FOUND when path is empty 2ms
+     ✓ returns NOT_FOUND when schema does not have properties 1ms
+     ✓ return NOT_FOUND when field does not exist in the schema 0ms
+     ✓ returns NOT_FOUND when the path traverses a boolean subschema 1ms
+     ✓ returns field as required 0ms
+     ✓ returns field as not required 0ms
+     ✓ returns nested field as required 0ms
+     ✓ returns nested field as not required 0ms
+     ✓ resolves numeric path segments (FieldPathList) the same as string keys 0ms
+     ✓ schema has oneOf field in properties key and isRequired true 1ms
+     ✓ schema has anyOf field in properties key and isRequired false 0ms
+     ✓ drills into the anyOf when the schema also has a oneOf (#5309) 0ms
+     ✓ schema has oneOf in nested field in properties key and isRequired true 0ms
+     ✓ schema has anyOf in nested field in properties key and isRequired false 0ms
+   ✓ findSelectedOptionInXxxOf (12)
+     ✓ returns undefined when schema has no oneOfs 0ms
+     ✓ returns undefined when schema has no anyOfs 0ms
+     ✓ returns undefined when formData has no oneOf value via the fallbackField 0ms
+     ✓ returns undefined when formData has no anyOf value via the fallbackField 0ms
+     ✓ returns undefined when formData has no oneOf value via the discriminator 0ms
+     ✓ returns undefined when formData has no oneOf value via the discriminator 0ms
+     ✓ returns oneOf when formData has value via the fallbackField 0ms
+     ✓ returns anyOf when formData has value via the fallbackField 0ms
+     ✓ returns oneOf when formData has value via the discriminator 0ms
+     ✓ returns anyOf when formData has value via the discriminator 0ms
+     ✓ returns undefined when formData has non-existent oneOf value via the discriminator 0ms
+     ✓ returns undefined when formData has non-existent anyOf value via the discriminator 0ms
+   ❯ getDefaultFormState() (485)
+     ✓ an explicitly undefined property schema (2)
+       ✓ getObjectDefaults treats it as an empty schema 1ms
+       ✓ ensureFormDataMatchingSchema treats it as an empty schema 1ms
+     ✓ throws error when schema is not an object 1ms
+     ❯ object schemas (176)
+       ✓ schema with a ref (4)
+         ✓ getDefaultFormState 1ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ schema with anyOf containing $ref AND default should preserve existing formData (2)
+         ✓ getDefaultFormState should preserve existing formData when anyOf has $ref and default 2ms
+         ✓ getDefaultFormState should apply defaults when formData is undefined 1ms
+       ✓ schema with a const property (8)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+         ✓ constAsDefaults is never (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+       ✓ an object with an optional property that has a nested required property (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ an object with an optional property that has a nested required property with default (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ an object with an optional property that has a nested required property and includeUndefinedValues (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ an object with an optional property that has a nested required property and includeUndefinedValues is 'excludeObjectChildren' (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ an object with an null-type property and includeUndefinedValues is 'excludeObjectChildren' (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ required boolean properties default to false when no default is provided (9)
+         ✓ sets required boolean to false when no default is given 0ms
+         ✓ preserves an explicit schema default of true for a required boolean 0ms
+         ✓ does not set a default for an optional boolean 0ms
+         ✓ preserves existing formData true for a required boolean 0ms
+         ✓ preserves existing formData false for a required boolean 0ms
+         ✓ sets no false for a type list resolving to boolean whose widget renders another listed type 0ms
+         ✓ sets no false for a select over a type list naming boolean first among several non-null types 0ms
+         ✓ sets false for a select over a nullable boolean 0ms
+         ✓ sets false for a type list whose checkbox widget renders its boolean type 0ms
+       ✓ a type list holding a value of another listed type (9)
+         ✓ spreads no array defaults into an object held by a list resolving to array 0ms
+         ✓ keeps a null held by a list resolving to object 0ms
+         ✓ keeps a null held by a list resolving to object 0ms
+         ✓ keeps a null held by a list resolving to array 0ms
+         ✓ keeps a default of another listed type on a list resolving to object 0ms
+         ✓ keeps a default of another listed type on a list resolving to array 0ms
+         ✓ fills in the defaults when the list holds no value yet 0ms
+         ✓ fills in the array defaults of a list naming object behind a oneOf 1ms
+         ✓ fills in the array defaults of a list naming object with dependencies 3ms
+       ✓ required boolean properties and the requiredBooleanDefault flag (10)
+         ✓ leaves a required boolean undefined when no default is given 0ms
+         ✓ leaves a required nullable boolean undefined when no default is given 0ms
+         ✓ still applies an explicit schema default for a required boolean 0ms
+         ✓ still applies a parent default for a required boolean 0ms
+         ✓ preserves existing formData false for a required boolean 0ms
+         ✓ populates false again when the flag is populateFalse 0ms
+         ✓ returns undefined from getDefaultBasedOnSchemaType for a required boolean when skip is set 0ms
+         ✓ populates false when the flag is omitted 0ms
+         ✓ populates false for an unrecognized string value instead of silently skipping 0ms
+         ✓ populates false for a non-string value instead of silently skipping 0ms
+       ✓ an object with an additionalProperties (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ✓ an object with an additionalProperties and includeUndefinedValues (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+       ❯ an object with additionalProperties type object with defaults and formdata (73)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+         ✓ an object with schema-level default and renamed additionalProperties key in formData (4)
+           ✓ getDefaultFormState does not re-inject default key when formData has a renamed key 0ms
+           ✓ getDefaultFormState seeds default keys when options formData is empty 0ms
+           ✓ getDefaultFormState seeds default when options is absent from formData 0ms
+           ✓ getObjectDefaults does not re-inject default key when formData has a renamed key 0ms
+         ✓ an object with additionalProperties type object with formdata and no defaults (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ an object with additionalProperties type object with no defaults and non-object formdata (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ an object with deep nested dependencies with formData (4)
+           ✓ getDefaultFormState 1ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ handling an invalid property schema (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ a recursive schema (4)
+           ✓ getDefaultFormState 1ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ a recursive schema whose then branch refers back to it (1)
+           ✓ getDefaultFormState stops at the recursion the branch expanded 1ms
+         ❯ a recursive schema whose dependencies entry refers back to it (2)
+           × getDefaultFormState stops at the recursion the entry declares, from the root 22ms
+           × getDefaultFormState stops at the recursion the entry declares, from a property 2ms
+         ✓ a branch beside a $ref that uses the definition a second time (3)
+           ✓ getDefaultFormState fills in the property an allOf entry declares 1ms
+           ✓ getDefaultFormState fills in the property a then branch declares 0ms
+           ✓ getDefaultFormState fills in the property a dependencies entry declares 0ms
+         ❯ a recursive schema whose if has its properties resolved (6)
+           ✓ keeps the parent and own defaults at the recursion, as a $ref to it does 1ms
+           ✓ takes the ui:initialValue at the recursion, as a $ref to it does 1ms
+           ✓ stops at a recursion reached through array items 1ms
+           ✓ stops at a recursion an allOf around the $ref hides from the $ref check 1ms
+           ✓ stops at a $ref back to the definition whose allOf merged another $ref in 1ms
+           × stops a recursion under a populated allOf at the same depth as the same one without it 2ms
+         ❯ a recursive schema whose typed property resolves its way back to it (4)
+           ✓ stops at a recursion reached through the allOf of a property 1ms
+           ✓ stops at a recursion reached through the then branch of a property 1ms
+           × stops at a recursion reached through the allOf of array items 31ms
+           × stops at a recursion reached through the allOf of additionalProperties 2ms
+         ✓ a recursive allof schema (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ❯ a recursive $ref held inside a keyword on a property (6)
+           × an allOf holding the ref, with populateDefaults 45ms
+           × an allOf holding the ref in array items, with populateDefaults 21ms
+           × an if/then holding the ref 18ms
+           × an if/then holding the ref in array items 13ms
+           × a dependencies entry that is the ref 20ms
+           × a dependencies entry holding the ref in its properties 24ms
+         ❯ a recursive $ref reached through a dependencies entry (#5493) (2)
+           × a root-level $ref 1ms
+           × a $ref reached through a property 4ms
+         ✓ form data that meets a recursive dependencies entry (2)
+           ✓ every supplied level keeps its defaults, from a root $ref 1ms
+           ✓ every supplied level keeps its defaults, from a $ref reached through a property 0ms
+         ✓ a dependencies branch that stood beside the $ref (2)
+           ✓ a $ref entry keeps the sibling defaults and the definition ones 0ms
+           ✓ an allOf entry keeps every branch 0ms
+         ✓ the depth defaults reach into a recursive definition (1)
+           ✓ the raw definition, a $ref to it, and getDefaultFormState agree 1ms
+         ✓ a simple schema and no optional args (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ an object const value merge with formData (8)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+           ✓ constAsDefault is never (4)
+             ✓ getDefaultFormState 0ms
+             ✓ computeDefaults 0ms
+             ✓ getDefaultBasedOnSchemaType 0ms
+             ✓ getObjectDefaults 0ms
+       ✓ an object with non valid formData for enum properties (8)
+         ✓ getDefaultFormState 1ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+         ✓ mergeDefaultsIntoFormData set to "useDefaultIfFormDataUndefined" (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+       ✓ an object with a valid formData and enum property with default value (1)
+         ✓ getDefaultFormState 0ms
+       ✓ skips the constant default of a schema's anyOf under skipOneOf when it also has a oneOf 0ms
+       ✓ takes the constant default of a schema's anyOf under skipOneOf when the oneOf beside it is empty 0ms
+       ✓ takes the constant default from the oneOf of a schema whose anyOf is empty 0ms
+       ✓ takes the constant default from the anyOf of a schema that also has a oneOf 0ms
+       ✓ oneOf with const values (12)
+         ✓ constAsDefaults is always (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ constAsDefaults is skipOneOf (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+         ✓ constAsDefaults is never (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getObjectDefaults 0ms
+       ✓ an object with invalid formData const and constAsDefault set to always (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 2ms
+         ✓ getObjectDefaults 0ms
+       ✓ an nested object with if/then condition (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getObjectDefaults 0ms
+     ✓ selects over object or array constants (19)
+       ✓ leaves a required enum select with no default unfilled, rather than an empty value no option allows 0ms
+       ✓ defaults a required oneOf select to its first constant as a whole, as a primitive one is 1ms
+       ✓ defaults a oneOf select to the constant matching its own default 0ms
+       ✓ keeps its own default when constants are never defaults 0ms
+       ✓ keeps the constant picked in a oneOf select rather than blending its default into it 0ms
+       ✓ keeps the constant picked in an enum select rather than blending its default into it 0ms
+       ✓ keeps the array picked in a select rather than padding it with its default 0ms
+       ✓ leaves an object oneOf select unfilled under skipOneOf, as a primitive one is 0ms
+       ✓ keeps a default the parent sets for an object select when constants are never defaults 0ms
+       ✓ fills the minimum items of an array of object selects as it does for primitive selects 0ms
+       ✓ defaults a typeless oneOf of object constants to its first constant, as a typed one is 0ms
+       ✓ does not throw for an enum beside a oneOf of options that are not constants 0ms
+       ✓ applies ui:initialValue to a typed object oneOf select 0ms
+       ✓ applies ui:initialValue to a typeless object oneOf select 0ms
+       ✓ applies ui:emptyValue to an object oneOf select with nothing else to default to 0ms
+       ✓ picks the constant an ancestor default names over its own default when ancestors win 0ms
+       ✓ picks the constant an ancestor default names for an object oneOf select 0ms
+       ✓ picks its own default for an enum select over object constants rather than blending the two 0ms
+       ✓ picks the ancestor default when ancestors win for an enum select over object constants rather than blending the two 0ms
+     ✓ array schemas (54)
+       ✓ fills minItems with the item default when the array default is false 0ms
+       ✓ fills minItems with the item default when the array default is 0 0ms
+       ✓ fills minItems with the item default when the array default is "" 0ms
+       ✓ fills minItems with the item default when the array default is "ab" 0ms
+       ✓ fills minItems with the item default when the array default is {} 0ms
+       ✓ fills minItems with the item default when the array default is 5 0ms
+       ✓ fills minItems with the item default when the array default is true 0ms
+       ✓ array with defaults with no formData (8)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getArrayDefaults 0ms
+         ✓ with empty array as formData (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getArrayDefaults 0ms
+       ✓ array with no defaults (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getArrayDefaults 0ms
+       ✓ array const value populate as defaults (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getArrayDefaults 0ms
+       ✓ array with nested dependent fixed-length array schema (4)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults 0ms
+         ✓ getDefaultBasedOnSchemaType 0ms
+         ✓ getArrayDefaults 0ms
+       ✓ an invalid array schema (7)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults, requiredAsRoot = true 0ms
+         ✓ computeDefaults, requiredAsRoot = false 0ms
+         ✓ getDefaultBasedOnSchemaType, requiredAsRoot = true 0ms
+         ✓ getDefaultBasedOnSchemaType, requiredAsRoot = false 0ms
+         ✓ getArrayDefaults, requiredAsRoot = true 0ms
+         ✓ getArrayDefaults, requiredAsRoot = false 0ms
+       ✓ simple schema and no optional args (7)
+         ✓ getDefaultFormState 0ms
+         ✓ computeDefaults, requiredAsRoot = true 0ms
+         ✓ computeDefaults, requiredAsRoot = false 0ms
+         ✓ getDefaultBasedOnSchemaType, requiredAsRoot = true 0ms
+         ✓ getDefaultBasedOnSchemaType, requiredAsRoot = false 0ms
+         ✓ getArrayDefaults, requiredAsRoot = true 0ms
+         ✓ getArrayDefaults, requiredAsRoot = false 0ms
+       ✓ an array with const (9)
+         ✓ constAsDefaults is not never (default) (4)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults 0ms
+           ✓ getDefaultBasedOnSchemaType 0ms
+           ✓ getArrayDefaults 0ms
+         ✓ constAsDefaults is never (5)
+           ✓ getDefaultFormState 0ms
+           ✓ computeDefaults, requiredAsRoot = true 0ms
+           ✓ computeDefaults, requiredAsRoot = false 0ms
+           ✓ getArrayDefaults, requiredAsRoot = true 0ms
+           ✓ getArrayDefaults, requiredAsRoot = false 0ms
+       ✓ optional array with arrayMinItems.populate = never (4)
+         ✓ optional array with arrayMinItems.populate = never, no form data 0ms
+         ✓ optional array with arrayMinItems.populate = never preserves short formData as-is 0ms
+         ✓ optional array with arrayMinItems.populate = never preserves formData that already meets minItems 0ms
+         ✓ required array with arrayMinItems.populate = never does not pad minItems with null (issue #5163) 0ms
+     ✓ getInnerSchemaForArrayItem() item of type boolean returns empty schema 0ms
+     ✓ resolveDependencies() (1)
+       ✓ test an object with dependencies 0ms
+     ✓ computeDefaultBasedOnSchemaTypeAndDefaults() (18)
+       ✓ Object (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 0ms
+       ✓ Nullable Object (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 0ms
+       ✓ Array (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 1ms
+       ✓ Nullable Array (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 0ms
+       ✓ Nullable String (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 0ms
+       ✓ Nullable String (3)
+         ✓ computedDefaults is undefined 0ms
+         ✓ computedDefaults is empty object 0ms
+         ✓ computedDefaults is non-empty object 0ms
+     ✓ getValidFormData (4)
+       ✓ Test schema with non valid formData for enum property 0ms
+       ✓ Test schema with valid formData for enum property 0ms
+       ✓ Test schema with const property 0ms
+       ✓ Test schema with valid formData with an enum and its default value 0ms
+     ✓ AJV $data reference in const property in schema should not be treated as default/const value (5)
+       ✓ test nested object with $data in the schema, optional array 0ms
+       ✓ test nested object with $data in the schema, required array 0ms
+       ✓ test nested object with $data in the schema and emptyObjectFields set to populateRequiredDefaults 0ms
+       ✓ test nested object with $data in the schema and emptyObjectFields set to skipEmptyDefaults 0ms
+       ✓ test nested object with $data in the schema and emptyObjectFields set to skipDefaults 0ms
+     ✓ default form state behavior: ignore min items unless required (5)
+       ✓ should return empty data for an optional array property with minItems 0ms
+       ✓ should return empty array when given an empty array as form data for an optional array property with minItems 0ms
+       ✓ should return undefined filled array for a required array property with minItems 0ms
+       ✓ should return defaults array for a required array property with minItems 0ms
+       ✓ should not combine defaults with raw form data for a required array property with minItems 0ms
+     ✓ default form state behaviour: allOf = "populateDefaults" (4)
+       ✓ should populate default values correctly 0ms
+       ✓ should populate the default of a `$ref` wrapped in a single-element `allOf` 0ms
+       ✓ should populate the defaults of a `$ref` to an object wrapped in a single-element `allOf` 0ms
+       ✓ should populate no default for a non-object `allOf` schema that merges to one with no default 0ms
+     ✓ default form state behaviour: allOf = "skipDefaults" (2)
+       ✓ should populate default values correctly 0ms
+       ✓ should not populate the default of a `$ref` wrapped in a single-element `allOf` 0ms
+     ✓ default form state behavior: arrayMinItems.populate = "never" (10)
+       ✓ should not be filled if minItems defined and required 0ms
+       ✓ should not be filled if minItems defined and non required 0ms
+       ✓ should be filled with default values if required 0ms
+       ✓ should be filled with default values if non required 0ms
+       ✓ should be filled with default values partly and not fill others 0ms
+       ✓ should not add items to formData 0ms
+       ✓ should be empty array if minItems not defined and required 0ms
+       ✓ should be empty array if minItems not defined and non required 0ms
+       ✓ injecting data should be stopped at the top level of tree 0ms
+       ✓ no injecting for childs 0ms
+     ✓ default form state behavior: emptyObjectFields = "populateRequiredDefaults" (7)
+       ✓ test an object with an optional property that has a nested required property 0ms
+       ✓ test an object with a nested required property in a ref 0ms
+       ✓ test an object with a nested optional property in a ref 0ms
+       ✓ test an object with an optional property that has a nested required property with default 0ms
+       ✓ test an object with a required property that has a nested optional property which has a nested required property with default 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues is 'excludeObjectChildren' 0ms
+     ✓ default form state behavior: emptyObjectFields = "skipDefaults" (4)
+       ✓ test an object with an optional property that has a nested required property 0ms
+       ✓ test an object with an optional property that has a nested required property with default 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues is 'excludeObjectChildren' 0ms
+     ✓ default form state behavior: emptyObjectFields = "skipEmptyDefaults" (7)
+       ✓ test an object with an optional property that has a nested required property 0ms
+       ✓ test an object with a nested required property in a ref 0ms
+       ✓ test an object with a nested optional property in a ref 0ms
+       ✓ test an object with an optional property that has a nested required property with default 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues 0ms
+       ✓ test an object with an optional property that has a nested required property and includeUndefinedValues is 'excludeObjectChildren' 0ms
+       ✓ test an optional array without default value, an optional array with a default value, and a required array 0ms
+     ✓ root default (15)
+       ✓ should map root schema default to form state, if any 0ms
+       ✓ should keep existing form data that is equal to 0 0ms
+       ✓ should keep existing form data that is equal to false 0ms
+       ✓ should overwrite existing form data that is equal to a null 0ms
+       ✓ should overwrite existing form data that is equal to a undefined 0ms
+       ✓ should overwrite existing form data that is equal to a NaN 0ms
+       ✓ should prefer a non-object const over an object default on a non-object schema 0ms
+       ✓ should not spread a primitive form data value into an object default 0ms
+       ✓ should keep number form data on a schema with an object default 0ms
+       ✓ should keep boolean form data on a schema with an object default 0ms
+       ✓ should keep array form data on a root array schema with an object default 0ms
+       ✓ should prefer an array const over an object default 0ms
+       ✓ should compute array defaults for an array schema with dependencies 0ms
+       ✓ should compute the item defaults of an array schema with dependencies only once 0ms
+       ✓ should resolve dependencies against the inherited default of a whole-value select with an array type 0ms
+     ✓ nested default (51)
+       ✓ should map schema object prop default to form state 0ms
+       ✓ should default to empty object if no properties are defined 0ms
+       ✓ should recursively map schema object default to form state 0ms
+       ✓ should map schema array default to form state 0ms
+       ✓ should recursively map schema array default to form state 0ms
+       ✓ should propagate nested defaults to resulting formData by default 0ms
+       ✓ should keep parent defaults if they don`t have a node level default 0ms
+       ✓ should support nested values in formData 0ms
+       ✓ should use parent defaults for ArrayFields 0ms
+       ✓ should use parent defaults for ArrayFields if declared in parent 0ms
+       ✓ should map item defaults to fixed array default 0ms
+       ✓ should merge schema array item defaults from grandparent for overlapping default definitions 0ms
+       ✓ should overwrite schema array item defaults from parent for nested default definitions 0ms
+       ✓ should merge schema array item defaults from the same item for overlapping default definitions 0ms
+       ✓ should merge schema from additionalItems defaults into property default 0ms
+       ✓ should overwrite defaults over multiple levels with arrays 0ms
+       ✓ should use schema default for referenced definitions 0ms
+       ✓ should prefer descendant's default with a $ref 0ms
+       ✓ should populate defaults for oneOf + ref 0ms
+       ✓ should fill array with additional items schema when items is empty 0ms
+       ✓ should not fill array with additional items from schema when items is empty and form data contains partial array 0ms
+       ✓ should fill defaults in existing array items 0ms
+       ✓ defaults passed along for multiselect arrays when minItems is present 0ms
+       ✓ returns empty defaults when no item defaults are defined for required array 0ms
+       ✓ returns undefined defaults when no item defaults are defined for optional array 0ms
+       ✓ returns explicit defaults along with auto-fill when provided 0ms
+       ✓ nestedDefaultsPrecedence is ancestorWins (25)
+         ✓ should default to empty object if no properties are defined 0ms
+         ✓ should recursively map schema object default to form state 0ms
+         ✓ should map schema array default to form state 0ms
+         ✓ should recursively map schema array default to form state 0ms
+         ✓ should propagate nested defaults to resulting formData by default 0ms
+         ✓ should keep parent defaults regardless of node level defaults 0ms
+         ✓ should support nested values in formData 0ms
+         ✓ should use parent defaults for ArrayFields 0ms
+         ✓ should use parent defaults for ArrayFields if declared in parent 0ms
+         ✓ should map item defaults to fixed array default 0ms
+         ✓ should prefer schema array item defaults from grandparent for overlapping default definitions 0ms
+         ✓ should prefer schema array item defaults from parent for nested default definitions 0ms
+         ✓ should prefer schema array defaults for overlapping item default definitions 0ms
+         ✓ should merge schema from additionalItems defaults into property default 0ms
+         ✓ should prefer ancestor's defaults over multiple levels with arrays 0ms
+         ✓ should use schema default for referenced definitions 0ms
+         ✓ should prefer ancestor's default with a $ref 0ms
+         ✓ should populate defaults for oneOf + ref 0ms
+         ✓ should fill array with additional items schema when items is empty 0ms
+         ✓ should not fill array with additional items from schema when items is empty and form data contains partial array 0ms
+         ✓ should fill defaults in existing array items 0ms
+         ✓ defaults passed along for multiselect arrays when minItems is present 0ms
+         ✓ returns empty defaults when no item defaults are defined for required array 0ms
+         ✓ returns undefined defaults when no item defaults are defined for optional array 0ms
+         ✓ returns explicit defaults along with auto-fill when provided 0ms
+     ✓ defaults with allOf (4)
+       ✓ should populate root defaults for allOf 0ms
+       ✓ default form state behaviour: allOf = "populateDefaults" (2)
+         ✓ should populate default values correctly 0ms
+         ✓ should apply conditional const defaults consistently for root and nested allOf schemas 1ms
+       ✓ default form state behaviour: allOf = "skipDefaults" (1)
+         ✓ should populate default values correctly 0ms
+     ✓ defaults with oneOf (15)
+       ✓ should not populate defaults for empty oneOf 0ms
+       ✓ should populate defaults from the schema itself beside an empty oneOf 0ms
+       ✓ should keep the form data of a string beside an empty option list rather than replace it with the default 0ms
+       ✓ should keep the form data of a number beside an empty option list rather than replace it with the default 0ms
+       ✓ should keep the form data of an enum beside an empty option list rather than replace it with the default 0ms
+       ✓ should keep the form data of an array beside an empty anyOf at the root 0ms
+       ✓ should populate defaults for oneOf 0ms
+       ✓ should populate root defaults for oneOf 0ms
+       ✓ should populate defaults for oneOf when `type`: `object` is missing 0ms
+       ✓ should populate nested default values for oneOf 0ms
+       ✓ should not populate nested default values for oneOf, when not required 0ms
+       ✓ should populate nested default values for oneOf, when required is merged in 0ms
+       ✓ should populate nested default values merging required fields 0ms
+       ✓ should populate defaults for oneOf + dependencies 0ms
+       ✓ should populate defaults for oneOf second option 0ms
+     ✓ defaults with anyOf (11)
+       ✓ should not populate defaults for empty anyOf 0ms
+       ✓ should populate defaults from the schema itself beside an empty anyOf 0ms
+       ✓ should merge a default beside an empty anyOf with its parent default, as it would without the anyOf 0ms
+       ✓ should populate defaults for anyOf 0ms
+       ✓ should populate root defaults for anyOf 0ms
+       ✓ should populate nested default values for anyOf 0ms
+       ✓ should not populate nested default values for anyOf, when not required 0ms
+       ✓ should populate nested default values for anyOf, when required is merged in 0ms
+       ✓ should populate nested default values merging required fields 0ms
+       ✓ should populate defaults for anyOf + dependencies 0ms
+       ✓ should populate defaults for anyOf second option 0ms
+     ✓ with dependencies (25)
+       ✓ should populate dependency defaults when formData is undefined with inline 0ms
+       ✓ should populate dependency defaults when formData is undefined with allOf 0ms
+       ✓ should populate dependency defaults when formData is undefined with $ref 0ms
+       ✓ should populate dependency defaults when formData is undefined with inside allOf 0ms
+       ✓ should populate dependency defaults when formData is undefined with $ref inside allOf 0ms
+       ✓ should populate dependency defaults when formData is undefined with nested allOf 0ms
+       ✓ should populate dependency defaults when formData is undefined with properties outside allOf 0ms
+       ✓ should populate dependency defaults when formData is an empty object 0ms
+       ✓ should resolve dependency references without rootSchema and with formData=undefined 0ms
+       ✓ should resolve dependency references without rootSchema and with formData={} 1ms
+       ✓ inside oneOf (2)
+         ✓ should resolve dependency references without rootSchema and with formData=undefined 0ms
+         ✓ should resolve dependency references without rootSchema and with formData={} 0ms
+       ✓ inside anyOf (2)
+         ✓ should resolve dependency references without rootSchema and with formData=undefined 0ms
+         ✓ should resolve dependency references without rootSchema and with formData={} 0ms
+       ✓ should preserve dependency defaults when resolving a conditional branch 0ms
+       ✓ should preserve dependency defaults when merging matching pattern properties 1ms
+       ✓ should populate defaults for dependencies 0ms
+       ✓ should populate defaults for nested dependencies 0ms
+       ✓ should populate defaults for nested dependencies in arrays 0ms
+       ✓ should populate defaults for nested dependencies in arrays that sit below another object 0ms
+       ✓ should populate defaults for nested dependencies in arrays when matching enum values in oneOf 1ms
+       ✓ should populate defaults for nested oneOf + dependencies 0ms
+       ✓ should populate defaults for properties to ensure the dependencies conditions are resolved based on it 0ms
+       ✓ should populate defaults for nested dependencies when formData passed to computeDefaults is undefined 0ms
+       ✓ should not crash for defaults for nested dependencies when formData passed to computeDefaults is null 0ms
+     ✓ with schema keys not defined in the formData (1)
+       ✓ shouldn`t add in undefined keys to formData 0ms
+     ✓ object with defaults and undefined in formData, testing mergeDefaultsIntoFormData (3)
+       ✓ returns field value of default when formData is empty 0ms
+       ✓ returns field value of undefined when formData has undefined for field 0ms
+       ✓ returns field value of default when formData has undefined for field and `useDefaultIfFormDataUndefined` 0ms
+     ✓ should return undefined defaults for a required array property with minItems 0ms
+     ✓ should not combine defaults with raw form data for a required array property with minItems 0ms
+     ✓ should combine ALL defaults with raw form data for a array property with minItems 0ms
+     ✓ should return given defaults for a required array property with minItems 0ms
+     ✓ should not combine defaults with raw form data for a required array property with minItems 0ms
+     ✓ should combine ALL defaults with raw form data for a required array property with minItems 0ms
+     ✓ should not populate defaults for array items when computeSkipPopulate returns true 0ms
+     ✓ handles a `null` default value 0ms
+     ✓ array object reference sharing fix (issue #4756) (5)
+       ✓ should create independent object instances for array items via getDefaultFormState 0ms
+       ✓ should create independent object instances for array items via computeDefaults 0ms
+       ✓ should create independent object instances for array items via getArrayDefaults 0ms
+       ✓ should ensure array items with default values are independent instances 0ms
+       ✓ should ensure nested objects in arrays are independent instances 0ms
+     ✓ ui:emptyValue in getDefaultFormState (5)
+       ✓ uses emptyValue as the default when there is no schema default and no formData 0ms
+       ✓ does not use emptyValue when a schema default exists 0ms
+       ✓ does not use emptyValue when formData is provided 0ms
+       ✓ applies emptyValue in nested objects 0ms
+       ✓ behaves unchanged when no uiSchema is passed 0ms
+     ✓ ui:initialValue in getDefaultFormState (6)
+       ✓ uses initialValue as the default when there is no formData and no schema default 0ms
+       ✓ overrides a schema default with initialValue 0ms
+       ✓ does not override formData that was already provided 0ms
+       ✓ takes priority over emptyValue 0ms
+       ✓ applies initialValue in nested objects 0ms
+       ✓ applies initialValue on reset (undefined formData) 0ms
+     ✓ ui:initialValue/ui:emptyValue in array items (11)
+       ✓ applies ui:initialValue to array items created to satisfy minItems 0ms
+       ✓ applies ui:initialValue to existing array item formData missing the field 0ms
+       ✓ applies ui:emptyValue to tuple (fixed) items 0ms
+       ✓ ignores a dynamic (function) uiSchema.items rather than applying it blindly 0ms
+       ✓ ignores a dynamic (function) uiSchema.items for tuple (fixed) items too 0ms
+       ✓ applies a per-position ui:initialValue to minItems filler entries when uiSchema.items is a tuple (array) 0ms
+       ✓ applies a per-position ui:initialValue when uiSchema.items is itself a tuple (array) 0ms
+       ✓ applies additionalItems uiSchema, not the tuple uiSchema.items, to items beyond the tuple 0ms
+       ✓ applies additionalItems uiSchema to existing formData beyond a tuple length 0ms
+       ✓ does not resurrect ui:initialValue on a cleared tuple position after the initial pass 0ms
+       ✓ does not apply ui:initialValue to a minItems filler entry after the initial pass 0ms
+     ✓ ui:initialValue for additionalProperties (1)
+       ✓ applies uiSchema.additionalProperties, not a dynamically-named uiSchema entry, to an additional property 1ms
+     ✓ ui:initialValue/ui:emptyValue in oneOf/anyOf options (2)
+       ✓ applies ui:initialValue declared under uiSchema.oneOf[i] on first render, matching what applies on option change 0ms
+       ✓ applies ui:initialValue declared under uiSchema.anyOf[i] on first render 0ms
+     ✓ ui:definitions in getDefaultFormState (2)
+       ✓ applies ui:initialValue declared inside a ui:definitions fragment 0ms
+       ✓ applies ui:initialValue from an explicitly-passed uiSchemaDefinitions even when uiSchema itself has none 0ms
+   ✓ getDisplayLabel() (31)
+     ✓ with global uiSchema "label" set to true 0ms
+     ✓ with global uiSchema "label" set to false 0ms
+     ✓ with local uiSchema "label" set to true 0ms
+     ✓ with local uiSchema "label" set to false 0ms
+     ✓ coerces a non-boolean "ui:label" from untyped JSON to a boolean 0ms
+     ✓ object type 0ms
+     ✓ object type from additionalProperty 0ms
+     ✓ object type with constant options 0ms
+     ✓ object type with an enum 0ms
+     ✓ object type with an empty list of options 0ms
+     ✓ object type with non-constant options 0ms
+     ✓ boolean type without widget 0ms
+     ✓ boolean type with widget 0ms
+     ✓ boolean type with widget named through ui:options 0ms
+     ✓ boolean type naming the checkbox it already resolves to, through ui:widget 0ms
+     ✓ boolean type naming the checkbox it already resolves to, through ui:options 0ms
+     ✓ boolean type naming the checkbox by its alias, which a FieldTemplate lays out itself 0ms
+     ✓ a textarea on a ["null","object","string"] follows the field of the type that renders it 0ms
+     ✓ a CheckboxWidget on a ["number","boolean"] follows the field of the type that renders it 0ms
+     ✓ a MyWidget on a ["null","object","string"] follows the field of the type that renders it 0ms
+     ✓ a select over a type list naming boolean first displays its label, since StringField renders it 0ms
+     ✓ a nullable type ignores the widget when choosing the type 0ms
+     ✓ with ui:field 0ms
+     ✓ array type (8)
+       ✓ added by additionalProperty 0ms
+       ✓ items 0ms
+       ✓ enum of whole array values 0ms
+       ✓ empty enum 0ms
+       ✓ constant options 0ms
+       ✓ empty list of options 0ms
+       ✓ files type 0ms
+       ✓ custom type 0ms
+   ✓ calculateIndexScore (17)
+     ✓ returns 0 when schema is not specified 0ms
+     ✓ returns 0 when schema.properties is undefined 0ms
+     ✓ returns 0 when schema.properties is not an object 0ms
+     ✓ returns 0 when properties type is boolean 0ms
+     ✓ returns 0 when formData is empty object 0ms
+     ✓ returns 1 for first option in oneOf schema 0ms
+     ✓ returns 8 for second option in oneOf schema 0ms
+     ✓ scores a property by the anyOf of a schema that also has a oneOf 0ms
+     ✓ returns 1 for a schema that has a type matching the formData type 0ms
+     ✓ returns 2 for a schema that has a const matching the formData value 0ms
+     ✓ scores a recursive $ref under a property named for an inherited member 0ms
+     ✓ does not follow a $ref that the formData has no value for 0ms
+     ✓ returns 0 for a schema that has a const that does not match the formData value 0ms
+     ✓ scores a falsy const the way it scores a truthy one 0ms
+     ✓ scores a nested oneOf holding a falsy value the way it scores a truthy one 0ms
+     ✓ does not score a nested oneOf against a null value 0ms
+     ✓ does not compare a missing value to a const of null 0ms
+   ✓ oneOfMatchingOption (15)
+     ✓ oneOfSchema, oneOfData data, no options, returns -1 0ms
+     ✓ oneOfSchema, no data, 2 options, returns -1 0ms
+     ✓ oneOfSchema, oneOfData, no options, selectedOption 2, returns 2 0ms
+     ✓ oneOfSchema, no data, 2 options, returns -1 0ms
+     ✓ returns the first option, which kind of matches the data 0ms
+     ✓ returns the second option, which exactly matches the data 0ms
+     ✓ returns the first matching option (i.e. second index) when data is ambiguous 0ms
+     ✓ returns the third index when data is clear 0ms
+     ✓ returns the second option when data matches for oneOf 0ms
+     ✓ returns the second option when data matches for anyOf 0ms
+     ✓ should return 0 when schema has discriminator but no matching data 0ms
+     ✓ should return Bar when schema has discriminator for bar 0ms
+     ✓ recursive $ref in an option, see https://github.com/rjsf-team/react-jsonschema-form/issues/5337 (3)
+       ✓ terminates when the recursion runs out of form data 0ms
+       ✓ scores the recursive option as deep as the form data goes 0ms
+       ✓ terminates for a pair of mutually recursive definitions 0ms
+   ✓ getFirstMatchingOption() (21)
+     ✓ should infer correct anyOf schema based on data if passing undefined 0ms
+     ✓ holds the augmentation outside an option that has an $id, keeping only the junk option's 1ms
+     ✓ drops the required of an option that has an $id along with the one that has none 1ms
+     ✓ scores an option describing a map as it stands, since it declares no keys to assert 1ms
+     ✓ derives an $id for an option whose own ends in an empty fragment 0ms
+     ✓ derives the schema an option is scored by once, so re-scoring it does not hash it again 0ms
+     ✓ scores a boolean option as it stands, since it declares nothing to augment 0ms
+     ✓ should handle undefined formData when a discriminator field is present in an option 0ms
+     ✓ should infer correct anyOf schema with properties also having anyOf/allOf 0ms
+     ✓ returns 0 if no options match 0ms
+     ✓ should infer correct anyOf schema based on data if passing null and option 2 is {type: null} 0ms
+     ✓ should infer correct anyOf schema based on data 0ms
+     ✓ does not match an option that declares no keys at all, so a "none" option leaves the data alone 0ms
+     ✓ scores an option describing a map as it stands, since it declares its keys elsewhere 0ms
+     ✓ scores an option describing a map through unevaluatedProperties as it stands 0ms
+     ✓ does not match an option whose additionalProperties is spelled undefined 0ms
+     ✓ does not match an option whose patternProperties name no pattern either 0ms
+     ✓ scores an option that declares no properties at all as it stands 0ms
+     ✓ should return 0 when schema has discriminator but no matching data 0ms
+     ✓ should return Bar when schema has simple discriminator for bar 0ms
+     ✓ should return Bar when schema has non-simple discriminator for bar 0ms
+   ✓ getFromSchema (6)
+     ✓ performs a simple `get` for a path without $ref values 0ms
+     ✓ returns the expected field with the $refs retrieved for a path with a $ref 1ms
+     ✓ returns the expected field with the $refs retrieved for a path with nested $refs, string path 0ms
+     ✓ returns the default data value when passed an invalid path 0ms
+     ✓ descends into a property whose key is the number 0 (FieldPathList segment) 0ms
+     ✓ returns the default schema value when passed an invalid path 0ms
+   ✓ isFilesArray() (3)
+     ✓ returns true if the uiSchema has the "files" widget 0ms
+     ✓ should be true if items have data-url format 0ms
+     ✓ should be false if items is undefined 0ms
+   ✓ isMultiSelect() (7)
+     ✓ uniqueItems is true (6)
+       ✓ schema items enum is an array (1)
+         ✓ should be true 0ms
+       ✓ should be false if items is undefined 0ms
+       ✓ schema items enum is not an array (3)
+         ✓ should be false if oneOf/anyOf is not in items schema 0ms
+         ✓ should be false if oneOf/anyOf schemas are not all constants 0ms
+         ✓ should be true if oneOf/anyOf schemas are all constants 0ms
+       ✓ should retrieve reference schema definitions 0ms
+     ✓ should be false if uniqueItems is false 0ms
+   ✓ isSelect() (6)
+     ✓ should be false if items is undefined 0ms
+     ✓ schema items enum is not an array (2)
+       ✓ should be false if oneOf/anyOf schemas are not all constants 0ms
+       ✓ should be true if oneOf/anyOf schemas are all constants 0ms
+     ✓ schema has both anyOf and oneOf (2)
+       ✓ should be false when the anyOf options are not all constants 0ms
+       ✓ should be true when only the anyOf options are all constants 0ms
+     ✓ should retrieve reference schema definitions 0ms
+   ✓ isValueEmpty() (12)
+     ✓ returns true for null 0ms
+     ✓ returns true for undefined 0ms
+     ✓ returns true for empty string 0ms
+     ✓ returns true for empty array 0ms
+     ✓ returns true for empty object 0ms
+     ✓ returns true when every object value is empty 0ms
+     ✓ returns true for a deeply nested empty object 0ms
+     ✓ returns false for a non-empty string 0ms
+     ✓ returns false for number 0 0ms
+     ✓ returns false for boolean false 0ms
+     ✓ returns false for a non-empty array 0ms
+     ✓ returns false when at least one object value is non-empty 0ms
+   ✓ omitExtraData() (103)
+     ✓ should omit fields not defined in the schema 1ms
+     ✓ should include nested object fields defined in the schema 0ms
+     ✓ should handle arrays according to the schema 0ms
+     ✓ should not omit additional properties if the schema allows them 0ms
+     ✓ should not omit additional properties when root schema has additionalProperties 0ms
+     ✓ should not omit additional properties within oneOf 0ms
+     ✓ should keep additional properties but strip extras from defined properties within oneOf 0ms
+     ✓ should keep or strip additional properties in oneOf based on the matched option 0ms
+     ✓ should strip extras within a oneOf when the anyOf beside it is made of constants (#5309) 0ms
+     ✓ should leave the data of an enum with a oneOf alone 1ms
+     ✓ should keep the whole value picked by a typed object oneOf select 0ms
+     ✓ should keep the whole value picked by a typed object enum select 0ms
+     ✓ should keep the whole value picked by a typed array oneOf select 0ms
+     ✓ should still prune a typed object whose oneOf is empty 0ms
+     ✓ preserves properties from non-matching oneOf options when parent allows additionalProperties 0ms
+     ✓ should strip extras from within additional property values with strict schemas 0ms
+     ✓ No form data returns undefined 0ms
+     ✓ basic behavior (removeOptionalEmptyObjects scenarios) (6)
+       ✓ should return undefined when formData is undefined 0ms
+       ✓ should return non-object formData as-is 0ms
+       ✓ should return formData as-is when schema is null or undefined 0ms
+       ✓ should return formData as-is when schema type is non-object but formData is an object 0ms
+       ✓ strips all formData keys when schema type is object but defines no properties 0ms
+       ✓ should return formData unchanged when there are no empty optional objects 0ms
+     ✓ the core bug scenario (Issue #4954) — optional empty object pruning (3)
+       ✓ keeps the optional object when its only content is required-but-empty fields 0ms
+       ✓ should keep the optional object when at least one field has a value 0ms
+       ✓ should keep the optional object when both fields have values 0ms
+     ✓ required objects — both functions agree they are not removed (2)
+       ✓ should keep a required object even if its fields are empty strings 0ms
+       ✓ should keep an empty required object its additionalProperties describes 0ms
+     ✓ nested optional objects (2)
+       ✓ prunes all optional objects when every nested value is empty 0ms
+       ✓ should keep outer object if inner object has data 0ms
+     ✓ mixed required and optional properties (2)
+       ✓ keeps optional_object when its only content is required-but-empty fields 0ms
+       ✓ should keep everything when optional object has data 0ms
+     ✓ multiple optional objects (1)
+       ✓ prunes optional objects whose schema-filtered field values are all empty 3ms
+     ✓ preserves non-object data (1)
+       ✓ preserves scalars but prunes optional objects whose values are all empty 0ms
+     ✓ null values (6)
+       ✓ keeps a null wherever the schema describes the property holding it 0ms
+       ✓ keeps a value of any type a type list allows, pruning an object one by its properties 0ms
+       ✓ keeps a container value whole under a type list that resolves to another type 0ms
+       ✓ keeps a null held by {"type":["null","object"],"properties":{"a":{"type":"string"}}} 0ms
+       ✓ keeps a null held by {"type":["null","array"],"items":{"type":"string"}} 0ms
+       ✓ drops a null held by a key the schema does not describe 0ms
+     ✓ arrays inside optional objects (9)
+       ✓ prunes the containing optional object when its only field is an empty array 0ms
+       ✓ should keep optional objects with non-empty arrays 0ms
+       ✓ strips extra keys and prunes optional objects with all-empty values inside array items 0ms
+       ✓ prunes optional objects with all-empty values inside root array items 0ms
+       ✓ filters tuple items by their per-index schema; additionalItems schema filters extra elements 0ms
+       ✓ drops tuple elements beyond the items array when additionalItems is absent 0ms
+       ✓ should return array as-is if no changes are made 0ms
+       ✓ keeps schema-defined content of a required object property 0ms
+       ✓ returns source unchanged when the array schema has no items definition 0ms
+     ✓ optional scalar properties (1)
+       ✓ keeps optional empty scalar fields — only extra keys absent from the schema are stripped 0ms
+     ✓ edge cases (5)
+       ✓ strips keys not in the schema even when they are non-empty 1ms
+       ✓ prunes optional objects whose schema-filtered content is all empty 0ms
+       ✓ keeps empty scalar properties but prunes optional objects with all-empty values 0ms
+       ✓ returns undefined when schema type is object but source is a non-object scalar 0ms
+       ✓ returns undefined when schema type is array but source is a non-array value 0ms
+     ✓ $ref and allOf support (15)
+       ✓ resolves $ref schemas 0ms
+       ✓ merges allOf schemas and applies the result 0ms
+       ✓ drops a value whose allOf merges to false 0ms
+       ✓ treats every key as optional when a property schema is boolean true (no required list) 0ms
+       ✓ keeps optional object with required-but-empty fields when the property schema is a $ref 0ms
+       ✓ uses customMergeAllOf when provided 0ms
+       ✓ keeps the properties of an allOf entry that is a $ref, which the form renders 0ms
+       ✓ merges each allOf schema once per call, however many array rows reach it 1ms
+       ✓ leaves a boolean allOf entry alone, since only a subschema object can carry references 0ms
+       ✓ hands customMergeAllOf the same resolved entries the form resolved with, so it agrees with what rendered 0ms
+       ✓ drops the allOf and warns when customMergeAllOf throws, rather than propagating out of Form 1ms
+       ✓ preserves properties from if/then/else entries that remain in allOf after merging 0ms
+       ✓ preserves numeric-string property keys from multiple if/then allOf conditions (issue #3920) 0ms
+       ✓ preserves oneOf-filtered array content for type:array schemas with no top-level items 0ms
+       ✓ preserves anyOf-filtered array content for type:array schemas with no top-level items 0ms
+     ✓ patternProperties support (7)
+       ✓ keeps keys matching a pattern and drops unmatched keys without additionalProperties 0ms
+       ✓ delegates rest keys (not matched by pattern) to additionalProperties 0ms
+       ✓ keeps what every pattern matching a key describes 0ms
+       ✓ drops a key one of the patterns matching it forbids 0ms
+       ✓ keeps a pattern-matched object whose required child is empty 0ms
+       ✓ keeps an empty pattern-matched object the object itself requires 0ms
+       ✓ skips keys already handled by properties when processing patternProperties 0ms
+     ✓ unevaluatedProperties support (3)
+       ✓ keeps the keys an unevaluatedProperties describes where no additionalProperties evaluates them 0ms
+       ✓ delegates the rest keys of a patternProperties to an unevaluatedProperties 0ms
+       ✓ drops the keys an unevaluatedProperties forbids, and the ones any additionalProperties evaluates 0ms
+     ✓ propertyNames support (1)
+       ✓ returns empty object when propertyNames is defined but no properties are declared 0ms
+     ✓ if/then/else (conditions) support (8)
+       ✓ applies then branch when condition is met 1ms
+       ✓ applies else branch when condition is not met 0ms
+       ✓ handles boolean true condition (always takes then branch without calling isValid) 0ms
+       ✓ returns target unchanged when condition is not met and there is no else branch 0ms
+       ✓ prunes then-branch keys not in parent properties/patternProperties when additionalProperties:false 0ms
+       ✓ prunes then-branch keys when parent has additionalProperties:false and no properties 0ms
+       ✓ returns existing filtered value when then-branch is permissive (true) 0ms
+       ✓ does not apply the else branch of one allOf condition to the if of another 0ms
+     ✓ anyOf support (6)
+       ✓ applies all anyOf branches when source is undefined 0ms
+       ✓ applies all anyOf branches when source is an empty object 0ms
+       ✓ returns source unchanged when anyOf contains a permissive (true) branch and source is empty object 0ms
+       ✓ delegates to oneOf matching logic when source is non-empty 0ms
+       ✓ applies all anyOf branches when source is an empty array 0ms
+       ✓ reuses an array target already built by anyOf when outer schema is also type:array 1ms
+     ✓ oneOf with boolean schema entries (2)
+       ✓ treats boolean true entry as pass-through schema 0ms
+       ✓ treats boolean false entry as a schema that rejects everything 0ms
+     ✓ dependencies support (3)
+       ✓ applies schema dependencies when the trigger key is present 0ms
+       ✓ preserves keys added by a dependency sub-schema even when parent has additionalProperties:false 0ms
+       ✓ skips property dependencies (string arrays) and schema dependencies for absent keys 0ms
+     ✓ oneOf with $ref options resolves references before scoring (1)
+       ✓ resolves a $ref option and relaxes additionalProperties:false before scoring 0ms
+     ✓ regression #5176 — allOf with repeated list property does not loop or duplicate items (1)
+       ✓ merges two allOf branches defining the same list property without duplicating items 0ms
+     ✓ regression #5196 — patternProperties empty schema over array inside dependencies does not infinite-loop (1)
+       ✓ terminates and returns the correct filtered data when patternProperties:{} covers an array-holding key also described by a dependencies oneOf branch 1ms
+   ✓ getAdditionalPropertyType() (10)
+     ✓ returns the type the schema names, resolving a nullable one 0ms
+     ✓ returns the type the schema implies 0ms
+     ✓ returns the type the values of a typeless enum have 0ms
+     ✓ returns the type anyOf or oneOf options agree on 0ms
+     ✓ returns undefined for anyOf or oneOf options that disagree about the type 0ms
+     ✓ returns the type the definition a reference names says, given a root schema to look it up in 0ms
+     ✓ reads the subschemas merged in beside options that name no type between them 0ms
+     ✓ reads a definition two merged entries both name, where the first of them shadows its type 0ms
+     ✓ returns the type an allOf entry names, since the merge holds the value to every entry at once 0ms
+     ✓ returns undefined for a schema that says nothing about the type 0ms
+   ✓ retrieveSchema() (219)
+     ✓ returns empty object when schema is not an object 0ms
+     ✓ tolerates a schema with an explicitly undefined `properties` 0ms
+     ✓ should `resolve` a schema which contains definitions 0ms
+     ✓ should `resolve` a schema which contains definitions not in `#/definitions` 0ms
+     ✓ should give an error when JSON pointer is not in a URI encoded format 0ms
+     ✓ should give an error when JSON pointer does not point to anything 0ms
+     ✓ should `resolve` escaped JSON Pointers 0ms
+     ✓ should `resolve` and stub out a schema which contains an `additionalProperties` with a definition 0ms
+     ✓ should resolve conditions in additionalProperties $ref using the additional property value 0ms
+     ✓ should `resolve` and stub out a schema which contains an `additionalProperties` with a type and definition 0ms
+     ✓ should `resolve` and stub out a schema which contains an `additionalProperties` with oneOf 0ms
+     ✓ should `resolve` and stub out a schema which contains an `additionalProperties` with anyOf 0ms
+     ✓ should handle null formData for schema which contains additionalProperties 0ms
+     ✓ should stub out a key only an unevaluatedProperties describes 0ms
+     ✓ should leave a key an anyOf or oneOf option declares to the option that renders it 0ms
+     ✓ should prioritize local definitions over foreign ones 0ms
+     ✓ recursive ref should resolve once 0ms
+     ✓ recursive array-items ref resolves without cycle flag (items are data-driven, not infinite) 0ms
+     ✓ recursive allof ref should resolve once 1ms
+     ✓ should `resolve` refs inside of a properties key with bad property 0ms
+     ✓ should `resolve` refs inside of a properties key 0ms
+     ✓ should `resolve` refs inside of an items key 0ms
+     ✓ should `resolve` a bundled draft 2020-12 JSON Schema 1ms
+     ✓ property dependencies (4)
+       ✓ false condition (1)
+         ✓ should not add required properties 0ms
+       ✓ true condition (3)
+         ✓ when required is not defined (2)
+           ✓ should define required properties 0ms
+           ✓ should not define required properties, when the dependency is a boolean 0ms
+         ✓ when required is defined (1)
+           ✓ should concat required properties 0ms
+     ✓ schema dependencies (48)
+       ✓ conditional (42)
+         ✓ false condition (1)
+           ✓ should not modify properties 0ms
+         ✓ true condition (3)
+           ✓ should add properties 0ms
+           ✓ should concat required properties 0ms
+           ✓ should not concat enum properties, but should concat `required` properties 0ms
+         ✓ with $ref in dependency (1)
+           ✓ should retrieve referenced schema 0ms
+         ✓ with $ref in oneOf (37)
+           ✓ does not flag a shared $ref as a cycle when several oneOf branches use it 0ms
+           ✓ does not flag a $ref used by a root property and by a dependencies oneOf branch 0ms
+           ✓ does not flag a $ref used by the dependency properties and by its oneOf branch 0ms
+           ✓ does not flag a $ref shared by two dependencies keys 0ms
+           ✓ does not flag a $ref shared by two allOf entries 0ms
+           ✓ does not flag a $ref shared by several oneOf branches when expanding all branches 1ms
+           ✓ terminates on a recursive definition under an allOf root 0ms
+           ✓ terminates on a recursive definition under a dependencies root 0ms
+           ✓ terminates on a recursive definition under an if/then root 0ms
+           ✓ terminates on a recursive definition behind array items under an allOf root 0ms
+           ✓ collapses a self-referencing property after one level 0ms
+           ✓ does not leak sibling keywords of one $ref into another usage of the same $ref 0ms
+           ✓ marks the closing edge of mutually recursive definitions as a cycle on both entry points 0ms
+           ✓ keeps a cycle-flagged $ref collapsed when dependencies are re-walked 0ms
+           ✓ expands all branches of a conditional reached through a $ref follow-up pass 0ms
+           ✓ returns the schema resolved so far, flagged as a cycle, when the pass-count backstop is exceeded 0ms
+           ✓ resolves a allOf chain 102 levels deep fully, not as a cycle 7ms
+           ✓ resolves a deps chain 100 levels deep fully, not as a cycle 11ms
+           ✓ resolves a then chain 100 levels deep fully, not as a cycle 16ms
+           ✓ collapses a definition that reaches itself through allOf 0ms
+           ✓ collapses a definition that reaches itself through if/then 0ms
+           ✓ collapses mutually recursive definitions that reach each other through allOf 0ms
+           ✓ collapses a definition that reaches itself through dependencies 0ms
+           ✓ flags a dependent property that points back at its enclosing definition as a cycle 0ms
+           ✓ flags a property an allOf entry declares that points back at the definition the schema was resolved from 1ms
+           ✓ flags a property a then branch declares that points back at the definition the schema was resolved from 0ms
+           ✓ a branch beside a $ref that uses the definition a second time (6)
+             ✓ expands the property an allOf entry declares, with the $ref at the root 0ms
+             ✓ expands the property a then branch declares, with the $ref at the root 4ms
+             ✓ expands the property a dependencies entry declares, with the $ref at the root 0ms
+             ✓ expands the property an allOf entry declares, with the $ref in a property 0ms
+             ✓ expands the property a then branch declares, with the $ref in a property 0ms
+             ✓ expands the property a dependencies entry declares, with the $ref in a property 0ms
+           ✓ collapses an OpenAPI-style discriminator pair that loops through if/then and allOf 0ms
+           ✓ resolves a shared $ref in dependencies branches when the root is itself a $ref 1ms
+           ✓ resolves a shared $ref in a then branch when the root is itself a $ref 0ms
+           ✓ resolves a shared $ref in an allOf entry when the root is itself a $ref 0ms
+           ✓ should retrieve referenced schemas 0ms
+       ✓ dynamic (6)
+         ✓ false condition (1)
+           ✓ should not modify properties 0ms
+         ✓ true condition (4)
+           ✓ should add `first` properties given `first` data 0ms
+           ✓ should add `second` properties given `second` data 0ms
+           ✓ showing/hiding nested dependencies (2)
+             ✓ should not include nested dependencies that should be hidden 0ms
+             ✓ should include nested dependencies that should not be hidden 0ms
+         ✓ with $ref in dependency (1)
+           ✓ should retrieve the referenced schema 0ms
+     ✓ allOf (12)
+       ✓ should merge types 0ms
+       ✓ should not merge `allOf.contains` schemas 1ms
+       ✓ should not merge incompatible types 0ms
+       ✓ should merge the allOf when expanding all branches, as a form does 0ms
+       ✓ should expand the branches of a property merged with the patternProperties that match it 0ms
+       ✓ should ignore a dependency oneOf that qualifies no option when expanding all branches 0ms
+       ✓ should vary the branches of pattern-matched properties one at a time, not in every combination 0ms
+       ✓ should drop an allOf it cannot merge when expanding all branches, as a form does 0ms
+       ✓ should merge types with $ref in them 0ms
+       ✓ should properly merge schemas with nested allOf`s 0ms
+       ✓ should use customMergeAllOf when provided 0ms
+       ✓ should `resolve` a draft 2020-12 schema with `$defs` property in an `allOf` block 0ms
+     ✓ Conditional schemas (If, Then, Else) (13)
+       ✓ should resolve if, then 0ms
+       ✓ should resolve if, else 0ms
+       ✓ should preserve a matched boolean false branch as an impossible schema 0ms
+       ✓ should preserve a matched boolean true branch as an empty schema 0ms
+       ✓ should resolve multiple conditions 0ms
+       ✓ should resolve multiple conditions in nested allOf blocks 0ms
+       ✓ should resolve $ref 0ms
+       ✓ handles nested if then else 0ms
+       ✓ evaluates the condition against a falsy integer value 0ms
+       ✓ evaluates the condition against a falsy boolean value 0ms
+       ✓ evaluates the condition against a falsy string value 0ms
+       ✓ evaluates an object condition against a null value as against an empty object 0ms
+       ✓ overrides the base schema with a conditional branch when merged 0ms
+     ✓ withDependentProperties() (1)
+       ✓ returns the schema when additionally required is falsey 0ms
+     ✓ withExactlyOneSubschema() (1)
+       ✓ Handle conditions with falsy subschema, subschema.properties, or condition schema 0ms
+     ✓ withPatternProperties() (10)
+       ✓ validates schemas with conditions inside patternProperties 1ms
+       ✓ merges all subschemas that match the patternProperties regex 1ms
+       ✓ resolves a $ref in a patternProperties entry for every key it matches, not just the first 0ms
+       ✓ resolves a $ref in a patternProperties entry that a sibling property resolved first 0ms
+       ✓ merges a pattern into a boolean property, which carries no reference of its own 0ms
+       ✓ merges a pattern into a key whose own allOf already declares what the pattern does 0ms
+       ✓ merges a pattern into a key whose own allOf holds a $ref alongside what the pattern declares 0ms
+       ✓ keeps the properties of a schema a key refers back to when a pattern also matches that key 0ms
+       ✓ merges a pattern into a key referring back to a schema other than the one that holds it 1ms
+       ✓ leaves a key an earlier retrieval stubbed out of the merge when the result is retrieved again 0ms
+     ✓ stubExistingAdditionalProperties() (60)
+       ✓ deals with undefined formData 0ms
+       ✓ deals with non-object formData 0ms
+       ✓ has property keys that match formData, additionalProperties is boolean 0ms
+       ✓ has property keys that match schema AND formData, additionalProperties is boolean 0ms
+       ✓ has additionalProperties of type number 0ms
+       ✓ has additionalProperties of empty object 0ms
+       ✓ has additionalProperties that constrains the value without naming a type 0ms
+       ✓ has additionalProperties that only annotates the value 0ms
+       ✓ has additionalProperties that only annotates or identifies the value in other ways 0ms
+       ✓ has additionalProperties with keywords that assert nothing about the value 0ms
+       ✓ has additionalProperties with containers that no stub carries a copy of 1ms
+       ✓ has additionalProperties that identifies the subschema beside the keywords naming the type 0ms
+       ✓ has additionalProperties with a ref that names no type 0ms
+       ✓ has anyOf options that all declare a property of their own 0ms
+       ✓ has anyOf options of which only some declare a property 0ms
+       ✓ has an anyOf option that takes keys of its own 0ms
+       ✓ has an anyOf option whose own options all take keys of theirs 0ms
+       ✓ has anyOf options that declare properties through a reference or an allOf 0ms
+       ✓ has an anyOf option whose own properties shadow the ones its reference names 0ms
+       ✓ has an anyOf option naming one definition twice, shadowing it only once 0ms
+       ✓ has an anyOf option whose own condition shadows the one its reference names 0ms
+       ✓ has an anyOf option whose reference names no definition 0ms
+       ✓ has an anyOf option whose reference names a boolean definition 0ms
+       ✓ has an anyOf option that declares a property in the branch its condition takes 0ms
+       ✓ has an anyOf option with a condition and no root schema to resolve it against 0ms
+       ✓ has a property name that is also a name on Object.prototype 0ms
+       ✓ has an anyOf option whose reference names a definition that takes keys of its own 0ms
+       ✓ has an anyOf option composed of an allOf entry that takes keys of its own 0ms
+       ✓ has an anyOf option whose reference names a definition offering options of its own 0ms
+       ✓ has an anyOf option composed of an allOf entry offering options of its own 0ms
+       ✓ has an option declaring a name through a dependency the data brings in 0ms
+       ✓ has an option declaring a name through a dependency the data leaves out 0ms
+       ✓ has an option declaring a dependency as a list of required names 0ms
+       ✓ has an option declaring a name through the branch a dependency's oneOf settles on the data 0ms
+       ✓ has an option declaring a name through a dependency spelled as a $ref to the oneOf 0ms
+       ✓ has an option whose dependency spelled as a $ref qualifies no single branch 0ms
+       ✓ has an option whose dependency oneOf qualifies no single branch 0ms
+       ✓ has an option whose dependency oneOf holds a branch that names no condition 0ms
+       ✓ has an option whose dependency oneOf names its branches' conditions behind a $ref 0ms
+       ✓ has an option with a dependency oneOf and no root schema to match its branches against 0ms
+       ✓ describes its extra keys with unevaluatedProperties beside options that declare different names 0ms
+       ✓ describes its extra keys with unevaluatedProperties beside an option the data does not match 0ms
+       ✓ describes its extra keys with unevaluatedProperties beside an option whose reference names no definition 0ms
+       ✓ describes its extra keys with additionalProperties beside unevaluatedProperties 0ms
+       ✓ has an allOf entry that takes keys of its own, left unmerged 0ms
+       ✓ has a property name of __proto__ 0ms
+       ✓ has an anyOf option that refers back to the definition it is declared in 0ms
+       ✓ has additionalProperties with a default of another type than the data 0ms
+       ✓ has additionalProperties constrained through subschemas 0ms
+       ✓ has additionalProperties with a ref 0ms
+       ✓ has property keys that does not match patternProperties, no additionalProperties 0ms
+       ✓ has property keys that does not match patternProperties, additionalProperties is false 0ms
+       ✓ has property keys that does not match patternProperties, unevaluatedProperties is false 0ms
+       ✓ has property keys that does not match patternProperties, unevaluatedProperties is false beside an additionalProperties schema 0ms
+       ✓ has property keys that match patternProperties 0ms
+       ✓ has property keys that match multiple patternProperties 0ms
+       ✓ has property keys that match patternProperties, additionalProperties is boolean 0ms
+       ✓ has property keys that match patternProperties, additionalProperties is object 0ms
+       ✓ has a property key matching a patternProperties subschema that names no type 0ms
+       ✓ has a property key matching a patternProperties subschema that constrains nothing 0ms
+     ✓ getAllPermutationsOfXxxOf() (3)
+       ✓ returns a single permutation when there are only one version of each row 0ms
+       ✓ returns 2 permutations when there are 2 versions in one row and one in another 0ms
+       ✓ returns 6 permutations when there are 3 in row 1, 2 in row 2 and one in row 3 0ms
+     ✓ resolveAllReferences() returns the schema it was given when there is no reference to resolve 0ms
+     ✓ resolveAllReferences() keeps the subschemas beside the one it resolves 0ms
+     ✓ resolveAllReferences() resolves the references of a oneOf beside an empty anyOf 0ms
+     ✓ resolveAllReferences() resolves the references of a oneOf a $ref brings beside an empty anyOf 0ms
+     ✓ resolveAnyOrOneOfSchemas() (8)
+       ✓ resolves anyOf with $ref for single element, merging schemas 0ms
+       ✓ resolves the anyOf of a schema that also has a oneOf, dropping both when not expanding every branch 0ms
+       ✓ resolves an empty anyOf to the schema without it, expanding every branch: false 0ms
+       ✓ resolves an empty anyOf to the schema without it, expanding every branch: true 0ms
+       ✓ retrieves a schema with dependencies beside an empty anyOf 0ms
+       ✓ resolves the anyOf of a schema that also has a oneOf, keeping the oneOf to resolve next 0ms
+       ✓ resolves oneOf with $ref for expandedAll elements, merging schemas 0ms
+       ✓ resolves oneOf with multiple $refs 0ms
+     ✓ relaxOptionsForScoring() (12)
+       ✓ converts boolean true to an empty schema 0ms
+       ✓ converts boolean false to a {not:{}} schema 0ms
+       ✓ widens additionalProperties:false to true 0ms
+       ✓ leaves schemas without additionalProperties unchanged 0ms
+       ✓ leaves schemas with additionalProperties:true unchanged 0ms
+       ✓ handles a mixed array of booleans and schemas 0ms
+       ✓ builds the relaxed form of an option once, so re-scoring it does not hash it again 0ms
+       ✓ resolveRefs=true (5)
+         ✓ resolves a $ref and widens additionalProperties:false to true 0ms
+         ✓ resolves a $ref without additionalProperties constraint and leaves it unchanged 0ms
+         ✓ leaves a plain schema (no $ref) unchanged when there is no additionalProperties:false 0ms
+         ✓ does not resolve refs when resolveRefs is false (default) 0ms
+         ✓ does not resolve refs when resolveRefs is true but rootSchema is omitted 0ms
+     ✓ resolveCondition() (2)
+       ✓ returns both conditions with expandAll 0ms
+       ✓ returns neither condition with expandAll, using boolean based then/else 0ms
+     ✓ resolveReference() with customMergeAllOf (1)
+       ✓ should pass customMergeAllOf parameter to retrieveSchemaInternal 0ms
+     ✓ resolveDependencies() with customMergeAllOf (1)
+       ✓ should pass customMergeAllOf parameter through dependency resolution 0ms
+     ✓ resolveSchema() integration with customMergeAllOf (2)
+       ✓ should properly pass customMergeAllOf through all resolution paths 0ms
+       ✓ should handle customMergeAllOf with nested $ref resolution 0ms
+     ✓ Edge cases for customMergeAllOf fix (3)
+       ✓ should handle undefined customMergeAllOf parameter gracefully 0ms
+       ✓ should handle customMergeAllOf that throws an error 0ms
+       ✓ should pass customMergeAllOf through complex nested resolution chains 0ms
+     ✓ retrieveSchema() with resolveAnyOfOrOneOfRefs (11)
+       ✓ resolves simple ref with no anyOf or oneOfs when false 0ms
+       ✓ resolves simple ref with no anyOf or oneOfs when true 0ms
+       ✓ does not resolves the references inside of anyOfs when false 0ms
+       ✓ resolves the references inside of anyOfs when true 0ms
+       ✓ does not resolves the references inside of oneOfs when false 0ms
+       ✓ resolves the references inside of oneOfs when true 0ms
+       ✓ resolves a shared $ref in the first anyOf option using it and keeps it as a ref in later options 0ms
+       ✓ still expands a $ref in a sibling subtree that an earlier anyOf option already expanded 0ms
+       ✓ resolves references without the optional expandedRefs argument 0ms
+       ✓ resolveSchema resolves a top-level $ref with only the required arguments 0ms
+       ✓ keeps the materialized schema linear on a DAG of shared anyOf refs 0ms
+   ✓ sanitizeDataForNewSchema (68)
+     ✓ returns undefined when the new schema does not contain a "property" object 0ms
+     ✓ returns input formData when the old schema is not an object 1ms
+     ✓ handles boolean property schemas without crashing 0ms
+     ✓ handles an explicitly undefined property schema without crashing 0ms
+     ✓ returns input formData when the old schema does not contain a "property" object 1ms
+     ✓ restores the default for an undefined property that is newly defined by the new schema 0ms
+     ✓ restores an empty array default for an undefined property newly defined by the new schema 0ms
+     ✓ sanitizes array data already present for a property newly defined by the new schema 0ms
+     ✓ continues sanitizing an existing array when the old schema omits its type 0ms
+     ✓ keeps the data of a property whose type was guessed from it, even when that type changed 0ms
+     ✓ clears the data of a property whose guessed type the new schema replaces with one of its own 0ms
+     ✓ preserves explicit undefined data for a property shared by both schemas 0ms
+     ✓ returns input formData when the new schema matches the data for the new schema rather than the old 1ms
+     ✓ returns input formData when the new schema and old schema match on a default 0ms
+     ✓ returns new schema const in formData when the old schema default matches in the formData 0ms
+     ✓ returns input formData when the old schema default does not match in the formData 0ms
+     ✓ returns empty formData when the old schema default does not match in the formData, and new schema default is readOnly 0ms
+     ✓ returns input formData when the new schema and old schema match on a const 0ms
+     ✓ returns new schema const in formData when the old schema const matches in the formData 0ms
+     ✓ returns empty formData when the old schema const does not match in the formData 0ms
+     ✓ replaces invalid enum data with the only allowed enum value 0ms
+     ✓ keeps enum data that is still allowed by the new schema 0ms
+     ✓ replaces invalid enum data with a valid new default when multiple enum values are allowed 0ms
+     ✓ clears invalid enum data when multiple values are allowed and no valid default exists 0ms
+     ✓ replaces invalid oneOf const and enum data 0ms
+     ✓ keeps a value an option that is not a constant accepts 0ms
+     ✓ replaces invalid anyOf const data with the only allowed value 0ms
+     ✓ checks data against the anyOf, the rendered select, when a schema carries both keywords (#5309) 0ms
+     ✓ clears data that no value of a multi-value enum option allows 0ms
+     ✓ keeps data when the options offer no value at all 0ms
+     ✓ keeps data when a direct enum offers no value at all 0ms
+     ✓ leaves an empty enum beside a list of constant options to that list 0ms
+     ✓ keeps data that a multi-value enum option beside a const allows 0ms
+     ✓ returns empty formData after resolving schema refs 0ms
+     ✓ resolves a dependency nested inside a property before sanitizing its data (#5250) 0ms
+     ✓ resolves a dependency nested inside array items, per item, before sanitizing its data (#5250) 0ms
+     ✓ resolves an items schema whose object type and dependency are only reachable through allOf, not a direct $ref (#5250) 0ms
+     ✓ returns data when two arrays have same boolean items 0ms
+     ✓ returns undefined when two arrays have differing boolean items 0ms
+     ✓ returns undefined when one array has boolean items 0ms
+     ✓ returns undefined when both arrays has array items 0ms
+     ✓ returns undefined when one arrays has array items 0ms
+     ✓ returns undefined when the arrays has array items of different types 0ms
+     ✓ returns trimmed array when the new schema has maxItems < size for simple type 0ms
+     ✓ filters out items not in the new items enum 0ms
+     ✓ keeps items that remain valid in the new items enum 0ms
+     ✓ returns all items when the new items schema has no enum constraint 0ms
+     ✓ filters out object items a narrowed items enum rejects, like scalar items (#5346) 0ms
+     ✓ filters out object items a narrowed items oneOf of constants rejects (#5346) 0ms
+     ✓ sanitizes object items per property when they are not picked as a whole 0ms
+     ✓ trims object items picked as a whole to maxItems (#5346) 0ms
+     ✓ allows no item at all for maxItems of 0, whether or not the items are picked as a whole (#5346) 0ms
+     ✓ offers no constraint for an empty items enum, like an empty oneOf (#5346) 0ms
+     ✓ leaves an empty items enum beside a list of object constants to that list (#5346) 0ms
+     ✓ returns whole array when the new schema does not have maxItems for simple type 0ms
+     ✓ returns trimmed array when the new schema has maxItems < size for object type 0ms
+     ✓ returns whole array when the new schema does not have maxItems for object type 0ms
+     ✓ returns undefined object values when the new schema has different object type 0ms
+     ✓ returns undefined object values when the new schema has array with different object types 0ms
+     ✓ keeps an array constant picked by a select that both schemas share 0ms
+     ✓ clears an object constant the new select does not offer 0ms
+     ✓ keeps a read-only object select holding its default, compared by value 0ms
+     ✓ replaces an untouched object default with the new default, compared by value 0ms
+     ✓ keeps array items picked from object constants spelled as an enum 0ms
+     ✓ keeps array items picked from object constants spelled as a oneOf of constants 0ms
+     ✓ returns formData when the new schema has field that is not in the old schema 0ms
+     ✓ returns empty object when the old schema is of type string and the new contains "property" field 0ms
+     ✓ returns empty object when the old schema is of type array and the new contains "property" field 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive schema whose dependencies entry refers back to it > getDefaultFormState stops at the recursion the entry declares, from the root
+AssertionError: expected { a: 'x', child: { a: 'x' } } to deeply equal { a: 'x' }
+
+- Expected
++ Received
+
+  {
+    "a": "x",
++   "child": {
++     "a": "x",
++   },
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1446:103
+    1444|             // The entry's content is the definition itself, whose def…
+    1445|             // level, so the recursion adds no level of its own
+    1446|             expect(getDefaultFormState({ validator: testValidator }, {…
+       |                                                                                                       ^
+    1447|           });
+    1448|         });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive schema whose dependencies entry refers back to it > getDefaultFormState stops at the recursion the entry declares, from a property
+AssertionError: expected { p: { a: 'x', child: { a: 'x' } } } to deeply equal { p: { a: 'x' } }
+
+- Expected
++ Received
+
+  {
+    "p": {
+      "a": "x",
++     "child": {
++       "a": "x",
++     },
+    },
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1446:103
+    1444|             // The entry's content is the definition itself, whose def…
+    1445|             // level, so the recursion adds no level of its own
+    1446|             expect(getDefaultFormState({ validator: testValidator }, {…
+       |                                                                                                       ^
+    1447|           });
+    1448|         });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive schema whose if has its properties resolved > stops a recursion under a populated allOf at the same depth as the same one without it
+AssertionError: expected { t: [ [ undefined ] ] } to deeply equal { t: [ undefined ] }
+
+- Expected
++ Received
+
+  {
+    "t": [
++     [
+        undefined,
++     ],
+    ],
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1563:37
+    1561|               );
+    1562|             };
+    1563|             expect(populated(tags)).toEqual({ t: [undefined] });
+       |                                     ^
+    1564|             expect(populated({ ...tags, allOf: [{ minItems: 1 }] })).t…
+    1565|           });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive schema whose typed property resolves its way back to it > stops at a recursion reached through the allOf of array items
+RangeError: Maximum call stack size exceeded
+ ❯ new ReferenceTally src/schema/retrieveSchema.ts:567:1
+    565|  * next walk from expanding the `$ref` again.
+    566|  */
+    567| class ReferenceTally {
+       | ^
+    568|   resolved = 0;
+    569|
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:694:11
+ ❯ resolveReference src/schema/retrieveSchema.ts:535:25
+ ❯ resolveSchema src/schema/retrieveSchema.ts:422:26
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1547:27
+ ❯ getObjectDefaults src/schema/getDefaultFormState.ts:683:9
+ ❯ getDefaultBasedOnSchemaType src/schema/getDefaultFormState.ts:1014:14
+ ❯ computeDefaults src/schema/getDefaultFormState.ts:529:58
+ ❯ src/schema/getDefaultFormState.ts:949:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive schema whose typed property resolves its way back to it > stops at a recursion reached through the allOf of additionalProperties
+AssertionError: expected { name: 'n', …(1) } to deeply equal { name: 'n', extra: { name: 'n' } }
+
+- Expected
++ Received
+
+  {
+    "extra": {
++     "extra": {
++       "name": "n",
++     },
+      "name": "n",
+    },
+    "name": "n",
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1607:58
+    1605|               default: { extra: { extra: {} } },
+    1606|             };
+    1607|             expect(defaults(schema, 'populateDefaults')).toEqual({ nam…
+       |                                                          ^
+    1608|           });
+    1609|         });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > an allOf holding the ref, with populateDefaults
+RangeError: Maximum call stack size exceeded
+ ❯ Module.declaredRef src/refOf.ts:1:1
+      1| import { ALL_OF_KEY, DEPENDENCIES_KEY, ELSE_KEY, REF_KEY, RJSF_REF_KEY…
+       | ^
+      2| import type { RJSFMarkedSchema, RJSFSchema, StrictRJSFSchema } from '.…
+      3|
+ ❯ branchClosesOnPath src/schema/retrieveSchema.ts:611:15
+ ❯ branchClosesOnPath src/schema/retrieveSchema.ts:638:11
+ ❯ branchClosesOnPath src/schema/retrieveSchema.ts:645:11
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:812:5
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:763:27
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:763:27
+ ❯ resolveReference src/schema/retrieveSchema.ts:535:25
+ ❯ resolveSchema src/schema/retrieveSchema.ts:422:26
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1547:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > an allOf holding the ref in array items, with populateDefaults
+RangeError: Maximum call stack size exceeded
+ ❯ Module.REF_KEY src/constants.ts:24:36
+     22| export const IF_KEY = 'if';
+     23| export const ITEMS_KEY = 'items';
+     24| export const JUNK_OPTION_ID = '_$junk_option_schema_id$_';
+       |                                    ^
+     25| export const NAME_KEY = '$name';
+     26| export const ONE_OF_KEY = 'oneOf';
+ ❯ declaredRef src/refOf.ts:10:19
+ ❯ branchClosesOnPath src/schema/retrieveSchema.ts:611:15
+ ❯ branchClosesOnPath src/schema/retrieveSchema.ts:645:11
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:812:5
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:763:27
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:786:14
+ ❯ resolveReference src/schema/retrieveSchema.ts:535:25
+ ❯ resolveSchema src/schema/retrieveSchema.ts:422:26
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1547:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > an if/then holding the ref
+RangeError: Maximum call stack size exceeded
+ ❯ Module.ID_KEY src/constants.ts:13:35
+     11| export const ALL_OF_KEY = 'allOf';
+     12| export const ANY_OF_KEY = 'anyOf';
+     13| export const CONST_KEY = 'const';
+       |                                   ^
+     14| export const DEFAULT_KEY = 'default';
+     15| export const DEFINITIONS_KEY = 'definitions';
+ ❯ findSchemaDefinitionRecursive src/findSchemaDefinition.ts:291:44
+ ❯ findSchemaDefinition src/findSchemaDefinition.ts:365:10
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:727:23
+ ❯ resolveAllReferences src/schema/retrieveSchema.ts:763:27
+ ❯ resolveReference src/schema/retrieveSchema.ts:535:25
+ ❯ resolveSchema src/schema/retrieveSchema.ts:422:26
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1547:27
+ ❯ resolveCondition src/schema/retrieveSchema.ts:184:9
+ ❯ src/schema/retrieveSchema.ts:1561:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > an if/then holding the ref in array items
+RangeError: Maximum call stack size exceeded
+ ❯ resolveReference src/schema/retrieveSchema.ts:506:17
+    504|  * @returns - The list schemas retrieved after having all references r…
+    505|  */
+    506| export function resolveReference<
+       |                 ^
+    507|   T = unknown,
+    508|   S extends StrictRJSFSchema = RJSFSchema,
+ ❯ resolveSchema src/schema/retrieveSchema.ts:422:26
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1547:27
+ ❯ resolveCondition src/schema/retrieveSchema.ts:184:9
+ ❯ src/schema/retrieveSchema.ts:1561:14
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1558:26
+ ❯ getObjectDefaults src/schema/getDefaultFormState.ts:683:9
+ ❯ getDefaultBasedOnSchemaType src/schema/getDefaultFormState.ts:1014:14
+ ❯ computeDefaults src/schema/getDefaultFormState.ts:529:58
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > a dependencies entry that is the ref
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref held inside a keyword on a property > a dependencies entry holding the ref in its properties
+RangeError: Maximum call stack size exceeded
+ ❯ retrieveSchemaInternal src/schema/retrieveSchema.ts:1529:17
+    1527|  *          resolved. Multiple schemas may be returned if `expandAllBr…
+    1528|  */
+    1529| export function retrieveSchemaInternal<
+       |                 ^
+    1530|   T = unknown,
+    1531|   S extends StrictRJSFSchema = RJSFSchema,
+ ❯ retrieveSchema src/schema/retrieveSchema.ts:86:10
+ ❯ isSelect src/schema/isSelect.ts:17:18
+ ❯ ensureFormDataMatchingSchema src/schema/getDefaultFormState.ts:579:58
+ ❯ computeDefaults src/schema/getDefaultFormState.ts:546:30
+ ❯ src/schema/getDefaultFormState.ts:719:33
+ ❯ getObjectDefaults src/schema/getDefaultFormState.ts:703:74
+ ❯ getDefaultBasedOnSchemaType src/schema/getDefaultFormState.ts:1014:14
+ ❯ computeDefaults src/schema/getDefaultFormState.ts:399:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref reached through a dependencies entry (#5493) > a root-level $ref
+AssertionError: expected { a: 'x', child: { a: 'x' } } to deeply equal { a: 'x' }
+
+- Expected
++ Received
+
+  {
+    "a": "x",
++   "child": {
++     "a": "x",
++   },
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1726:103
+    1724|           test('a root-level $ref', () => {
+    1725|             const schema: RJSFSchema = { definitions: { node }, $ref: …
+    1726|             expect(getDefaultFormState({ validator: testValidator }, {…
+       |                                                                                                       ^
+    1727|               a: 'x',
+    1728|             });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯
+
+ FAIL  test/schema.test.ts > getDefaultFormState() > object schemas > an object with additionalProperties type object with defaults and formdata > a recursive $ref reached through a dependencies entry (#5493) > a $ref reached through a property
+AssertionError: expected { p: { a: 'x', child: { a: 'x' } } } to deeply equal { p: { a: 'x' } }
+
+- Expected
++ Received
+
+  {
+    "p": {
+      "a": "x",
++     "child": {
++       "a": "x",
++     },
+    },
+  }
+
+ ❯ test/schema/getDefaultFormStateTest.ts:1737:103
+    1735|               properties: { p: { $ref: '#/definitions/node' } },
+    1736|             };
+    1737|             expect(getDefaultFormState({ validator: testValidator }, {…
+       |                                                                                                       ^
+    1738|               p: { a: 'x' },
+    1739|             });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/13]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 1016 passed (1029)
+   Start at  17:55:47
+   Duration  1.86s (transform 50%, tests 28%, import 12%, setup 10%)
+
+EXIT:1
