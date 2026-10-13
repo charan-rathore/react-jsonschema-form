@@ -885,6 +885,15 @@ export function getArrayDefaults<
   const { defaultFormStateBehavior } = context;
   let defaults = initialDefaults;
   const schema: S = rawSchema;
+  // Items materialized from a `$ref` (an `allOf` entry holding one) carry its source reference: it joins the
+  // path the items compute against, the way the retrieve-materialized properties join it in
+  // `getObjectDefaults()`, so the definition's own content below reads its reappearance as the recursion it is.
+  const itemsSchema = getInnerSchemaForArrayItem<S>(schema);
+  const itemsRef =
+    isObject(itemsSchema) && Reflect.get(itemsSchema, REF_SIBLING_BRANCHES) === undefined
+      ? resolvedFromRef<S>(itemsSchema)
+      : undefined;
+  const itemRecurseList = itemsRef && !_recurseList.includes(itemsRef) ? _recurseList.concat(itemsRef) : _recurseList;
 
   const arrayMinItemsStateBehavior = defaultFormStateBehavior?.arrayMinItems ?? {};
   const { populate: arrayMinItemsPopulate, mergeExtraDefaults: arrayMergeExtraDefaults } = arrayMinItemsStateBehavior;
@@ -904,7 +913,7 @@ export function getArrayDefaults<
       const itemFormData = Array.isArray(rawFormData) ? rawFormData[idx] : undefined;
       return computeDefaults<T, S, F>(context, schemaItem, {
         rootSchema,
-        _recurseList,
+        _recurseList: itemRecurseList,
         parentDefaults: item,
         rawFormData: itemFormData,
         required,
@@ -925,7 +934,7 @@ export function getArrayDefaults<
       const itemDefaults = rawFormData.map((item: T, idx: number) =>
         computeDefaults<T, S, F>(context, schemaItem, {
           rootSchema,
-          _recurseList,
+          _recurseList: itemRecurseList,
           rawFormData: item,
           parentDefaults: getByPath<T>(defaults, idx),
           required,
@@ -981,7 +990,7 @@ export function getArrayDefaults<
       computeDefaults<unknown, S, F>(context, fillerSchema, {
         parentDefaults: fillerDefault,
         rootSchema,
-        _recurseList,
+        _recurseList: itemRecurseList,
         required,
         shouldMergeDefaultsIntoFormData,
         initialDefaultsGenerated,
