@@ -1920,6 +1920,17 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
               expected,
             );
           });
+
+          test('a dependencies entry that is itself the $ref back is not expanded again for the same form data', () => {
+            // The entry's expansion would hand the definition the same formData it is already computing, so the
+            // recursion would never shrink the data and never stop (it RangeError'd before the entry was skipped)
+            expect(
+              getDefaultFormState(
+                { validator: testValidator },
+                { schema: rootSchema, rootSchema, formData: { a: 'x' } },
+              ),
+            ).toEqual(expected);
+          });
         });
 
         describe('a simple schema and no optional args', () => {
