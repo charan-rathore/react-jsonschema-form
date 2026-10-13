@@ -91,3 +91,19 @@ then/else $refs) for getObjectDefaults' cycleSeed/retrieveList removal, and the 
 computeDefaults' updatedRecurseList seeding. Then verify: the array test produces its expected
 {name:'n', child:[{x:{name:'n', child:[{}]}}]}, the other recursive tests stay green, all 8 probes stay green,
 then the full gate.
+
+## 20:31 IST - two more candidate fixes FAILED (reverted; tree back at fb8cb499 state, 2 failures)
+
+- Shallow/deep split (ownClosingRefsOf shallow for getObjectDefaults' retrieveList removal, deep for
+  computeDefaults seeding): REGRESSED to 4 failures - the buried-ref if/then tests lost their one due expansion
+  ({name:'n'} instead of {name:'n', child:{x:{name:'n'}}}): with the shallow read the buried ref stays ON the
+  retrieve path, so resolveCondition's x:$ref closes immediately and never expands.
+- cycleStopped (keep seeds on when a closing ref is already on the path): REGRESSED to 6 failures - suppresses
+  expansions that were still due.
+CONCLUSION: the deep cycleSeed removal at getObjectDefaults is correct for the object path. The array case's
+loop starts BEFORE any flagged frame (debug log: zero GOD-RETRIEVE lines; the looping schemas are unflagged).
+The upfront retrieve appears NOT to flag the if/then schema when it sits under array ITEMS (the object-held
+sibling IS flagged - heap probes). NEXT RUN, FIRST STEP: probe whether retrieveSchema on the array shape flags
+items; if not, fix the path threading into array items in resolveAllReferences so branchClosesOnPath fires
+there (the flag is what makes the compute-side isCycle stop work). Only then re-attempt the depth-parity
+expectation update (failure a) and run the FULL gate.
