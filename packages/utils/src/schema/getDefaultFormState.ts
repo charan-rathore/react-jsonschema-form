@@ -321,8 +321,14 @@ export function computeDefaults<
   let branchUiSchema = uiSchema;
   // Worked out by the `oneOf`/`anyOf` branch, so it isn't worked out again for this node's type-based default
   let isWholeValue: boolean | undefined;
+  // A schema the resolution flagged as a cycle closes the loop: computing below it is what never terminated. The
+  // recursion stops expanding here, so no branch resolves anything and the type-based computation is skipped;
+  // the level's own default (a `default`, `ui:initialValue`, `ui:emptyValue`) still applies.
+  const isCycle = (schema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] === true;
   const xxxOf = getXxxOfOptions<S>(schema);
-  if (
+  if (isCycle) {
+    // Expansion branches skipped
+  } else if (
     schema[CONST_KEY] !== undefined &&
     defaultFormStateBehavior?.constAsDefaults !== 'never' &&
     !constIsAjvDataReference(schema)
@@ -506,7 +512,7 @@ export function computeDefaults<
     }
   }
 
-  const defaultBasedOnSchemaType = getDefaultBasedOnSchemaType(
+  const defaultBasedOnSchemaType = isCycle ? undefined : getDefaultBasedOnSchemaType(
     context,
     schema,
     // The path the type-based computation descends with: what this call expanded joins it, while the reference
