@@ -10,6 +10,8 @@ import {
   IF_KEY,
   ONE_OF_KEY,
   REF_KEY,
+  THEN_KEY,
+  ELSE_KEY,
   RJSF_REF_CYCLE_KEY,
   UI_DEFINITIONS_KEY,
 } from '../constants.ts';
@@ -322,9 +324,17 @@ export function computeDefaults<
   // Worked out by the `oneOf`/`anyOf` branch, so it isn't worked out again for this node's type-based default
   let isWholeValue: boolean | undefined;
   // A schema the resolution flagged as a cycle closes the loop: computing below it is what never terminated. The
-  // recursion stops expanding here, so no branch resolves anything and the type-based computation is skipped;
-  // the level's own default (a `default`, `ui:initialValue`, `ui:emptyValue`) still applies.
-  const isCycle = (schema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] === true;
+  // flagged level still expands once, the way a plain `$ref` to the definition does: the reference its own
+  // branches close on seeds the path, so the level below reads it as already expanded and stops there. A flagged
+  // schema whose closing reference is already on the path IS the level below, and stops without expanding.
+  const cycleRefs: string[] =
+    (schema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] === true ? closingRefsOf<S>(schema) : [];
+  // Form data reaching the flagged level still gets the level's defaults, the way the `$ref` branch computes an
+  // in-list reference when data is present: the list is already seeded, so the loop cannot grow past the data.
+  const isCycle = cycleRefs.some((ref) => _recurseList.includes(ref)) && isEmptyFormData(rawFormData);
+  if (cycleRefs.length > 0 && !isCycle) {
+    updatedRecurseList = _recurseList.concat(cycleRefs.filter((ref) => !_recurseList.includes(ref)));
+  }
   const xxxOf = getXxxOfOptions<S>(schema);
   if (isCycle) {
     // Expansion branches skipped
@@ -359,8 +369,12 @@ export function computeDefaults<
   } else if (REF_KEY in schema) {
     const refName = schema[REF_KEY];
     // Use referenced schema defaults for this node.
+    // Checked against the list as handed in, not the cycle-seeded one: the first expansion of a flagged schema's
+    // own `$ref` is the level that still happens; the seed is what stops the level below.
     if (!_recurseList.includes(refName!)) {
-      updatedRecurseList = _recurseList.concat(refName!);
+      updatedRecurseList = updatedRecurseList.includes(refName!)
+        ? updatedRecurseList
+        : updatedRecurseList.concat(refName!);
       schemaToCompute = findSchemaDefinition<S>(refName, rootSchema);
     } else if (!isEmptyFormData(rawFormData)) {
       // The recursion stops expanding here, but form data reaching this level still gets the level's defaults:
@@ -592,6 +606,34 @@ export function ensureFormDataMatchingSchema<
   return validFormData;
 }
 
+/** Collects the `$ref`s a flagged-cycle schema's own branches hold: its top-level `$ref`, its `allOf` entries,
+ * and its `then`/`else` branches. These are the references the resolution found closing on the current path when it
+ * set `RJSF_REF_CYCLE_KEY`, and seeding the path with them is what stops the descent one level below the flagged
+ * schema, at the depth a plain `$ref` to the same definition stops.
+ *
+ * @param schema - The flagged schema whose branch references are collected
+ * @returns - The deduplicated list of references its branches declare
+ */
+function closingRefsOf<S extends StrictRJSFSchema = RJSFSchema>(schema: S): string[] {
+  const refs = new Set<string>();
+  if (REF_KEY in schema && typeof schema[REF_KEY] === 'string') {
+    refs.add(schema[REF_KEY]);
+  }
+  if (Array.isArray(schema[ALL_OF_KEY])) {
+    for (const entry of schema[ALL_OF_KEY] as S[]) {
+      if (isObject(entry) && REF_KEY in entry && typeof entry[REF_KEY] === 'string') {
+        refs.add(entry[REF_KEY]);
+      }
+    }
+  }
+  for (const branch of [schema[THEN_KEY], schema[ELSE_KEY]]) {
+    if (isObject(branch) && REF_KEY in (branch as S) && typeof (branch as S)[REF_KEY] === 'string') {
+      refs.add((branch as S)[REF_KEY] as string);
+    }
+  }
+  return [...refs];
+}
+
 /** Computes the default value for objects.
  *
  * @param context - The `SchemaContext` that will be forwarded to all the APIs
@@ -631,6 +673,12 @@ export function getObjectDefaults<
     const shouldRetrieveSchema =
       shouldPopulateAllOfDefaults(schema, defaultFormStateBehavior) ||
       (defaultFormStateBehavior?.emptyObjectFields !== 'skipEmptyDefaults' && IF_KEY in schema);
+    // A flagged-cycle schema was given the references its branches close on as seeds on the path, so the level
+    // below stops. The retrieve of THIS level is the one expansion still due, so the seeds come back off for it;
+    // they stay on for the children computed below.
+    const cycleSeed = (schema as Record<symbol, unknown>)[RJSF_REF_CYCLE_KEY] === true ? closingRefsOf<S>(schema) : [];
+    const retrieveList =
+      cycleSeed.length > 0 ? _recurseList.filter((ref) => !cycleSeed.includes(ref)) : _recurseList;
     const [retrievedSchema] = shouldRetrieveSchema
       ? retrieveSchemaInternal<T, S, F>(
           context,
@@ -641,8 +689,8 @@ export function getObjectDefaults<
           // The branches this retrieve resolves are not part of the definition when they stood beside the
           // `$ref`, so the schema's own reference stays off the path their `$ref`s resolve against
           Reflect.get(schema, REF_SIBLING_BRANCHES) !== undefined
-            ? _recurseList.filter((ref) => ref !== resolvedFromRef<S>(schema))
-            : enclosingRefPath<S>(schema, _recurseList),
+            ? retrieveList.filter((ref) => ref !== resolvedFromRef<S>(schema))
+            : enclosingRefPath<S>(schema, retrieveList),
         )
       : [schema];
     // The properties compute against the path as it was handed in: a `$ref` the retrieve expanded out of an `allOf`
