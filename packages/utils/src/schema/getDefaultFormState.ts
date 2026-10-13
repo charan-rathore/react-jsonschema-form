@@ -6,6 +6,7 @@ import {
   ALL_OF_KEY,
   CONST_KEY,
   DEFAULT_KEY,
+  DEFINITIONS_KEY,
   DEPENDENCIES_KEY,
   IF_KEY,
   ONE_OF_KEY,
@@ -308,6 +309,22 @@ export function computeDefaults<
   // that stood beside the `$ref` re-derive their own path with the keyword they are entered through, since a `$ref`
   // back to the same definition from one of those is a second use, not a recursion.
   let updatedRecurseList = enclosingRefPath<S>(schema, _recurseList);
+  let ownRawRef: string | undefined;
+  if (_recurseList.length === 0 && updatedRecurseList.length === 0) {
+    // A definition handed in raw carries no marker for the seed above: the definitions entry that IS this schema
+    // names it instead, so a `$ref` back to that entry reads as the same recursion a resolved definition's would.
+    // The identity match is what keeps a branch that merely stood beside a `$ref` to the same definition (a second
+    // use, not a recursion) from being seeded with a reference its own content never declared.
+    for (const containerKey of [DEFINITIONS_KEY, '$defs'] as const) {
+      const definitions = rootSchema[containerKey as keyof S] as Record<string, S> | undefined;
+      const ownEntry = definitions && Object.entries(definitions).find(([, definition]) => definition === schema);
+      if (ownEntry) {
+        ownRawRef = `#/${containerKey}/${ownEntry[0]}`;
+        updatedRecurseList = [ownRawRef];
+        break;
+      }
+      }
+  }
   // Overridden below when a `oneOf`/`anyOf` branch is selected, so that branch's own `uiSchema[keyword][index]`
   // fragment (matching `MultiSchemaField`'s `optionsUiSchema`/`optionUiSchema`) is what its fields see, rather than
   // the parent uiSchema, which is otherwise passed straight through.
@@ -345,8 +362,11 @@ export function computeDefaults<
     defaults = schema.default as unknown as T;
   } else if (REF_KEY in schema) {
     const refName = schema[REF_KEY];
-    // Use referenced schema defaults for this node.
-    if (!_recurseList.includes(refName!)) {
+    // Use referenced schema defaults for this node. A schema already resolved FROM this ref holds the content in
+    // place, so following the ref again would only drop the branches beside it. Otherwise a ref may be followed
+    // once and again where a loop repeats it, so a definition's own defaults reach one level in; a third reach is
+    // the recursion itself and stops.
+    if (resolvedFromRef(schema) !== refName && _recurseList.filter((r) => r === refName).length < 2) {
       updatedRecurseList = _recurseList.concat(refName!);
       schemaToCompute = findSchemaDefinition<S>(refName, rootSchema);
     } else if (!isEmptyFormData(rawFormData)) {
@@ -377,7 +397,7 @@ export function computeDefaults<
       schema,
       rootSchema,
       false,
-      enclosingRefPath<S>(schema, _recurseList, DEPENDENCIES_KEY),
+      ownRawRef ? [ownRawRef, ...enclosingRefPath<S>(schema, _recurseList, DEPENDENCIES_KEY)] : enclosingRefPath<S>(schema, _recurseList, DEPENDENCIES_KEY),
       defaultFormData,
     );
     [schemaToCompute] = resolvedSchema; // pick the first element from resolve dependencies
