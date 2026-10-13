@@ -1774,23 +1774,23 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
           });
         });
 
-        test('a dependencies branch that is a $ref back to the definition the schema came from', () => {
+        test('a dependencies branch holding a $ref back to the definition the schema came from', () => {
           // The reference the schema was materialized from is already on the path the dependency resolves and
-          // computes against: the entry's `$ref` names that same definition, so it reads as the recursion it is
-          // and stays a literal rather than expanding the definition one more level
+          // computes against: the `$ref` the branch holds names that same definition, so it reads as the
+          // recursion it is and stays a literal rather than expanding the definition one more level
           const Node: RJSFSchema = {
             type: 'object',
             properties: { a: { type: 'string' } },
-            dependencies: { a: { $ref: '#/definitions/Node' } },
+            dependencies: { a: { properties: { b: { $ref: '#/definitions/Node' } } } },
           };
           const schema: RJSFSchema = {
             definitions: { Node },
             type: 'object',
-            properties: { p: { $ref: '#/definitions/Node' } },
+            allOf: [{ properties: { p: { $ref: '#/definitions/Node' } } }],
           };
           expect(
             getDefaultFormState(
-              { validator: testValidator },
+              { validator: testValidator, defaultFormStateBehavior: { allOf: 'populateDefaults' } },
               { schema, rootSchema: schema, formData: { p: { a: 'x' } } },
             ),
           ).toEqual({ p: { a: 'x' } });
