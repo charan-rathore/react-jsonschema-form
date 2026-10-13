@@ -1,32 +1,31 @@
-# #5511 rework notes (drop before PR) - 13 red at 0be2b608
+# #5511 rework notes (drop before PR) - 3 red at e3ee6509 (was 13)
 
-## Mechanism A: if/then holding the ref THROWS (2 tests, also "stops a recursion under a populated allOf")
+## FIXED (e3ee6509 and earlier):
 
-RangeError: Maximum call stack. Loop is in the RETRIEVE, not computeDefaults:
-retrieveSchemaInternal (retrieveSchema.ts:1561, IF_KEY branch) -> resolveCondition (:184) -> retrieveSchemaInternal (:1547)
--> resolveSchema (:422) -> resolveReference (:506) -> resolveAllReferences (:727 -> :763 self-recursion).
-Fix direction: seed the path INTO the if-resolution (resolveCondition currently receives recurseList but the
-then/else branch it recurses into carries the ref; or a fixpoint stop when the condition-resolved schema is
-identical to its input). Note retrieveSchema.ts:713: the RJSF_REF_KEY=passCount>0 collapsed-ref stop already
-exists for the resolveAllReferences side; the if/then side does not benefit because resolveCondition re-enters
-retrieveSchemaInternal with the UNMARKED merged schema.
+- Deps-entry overfill + deps-entry-is-ref throw: computeDefaults DEPENDENCIES_KEY branch now seeds
+  updatedRecurseList with (a) dependenciesPath (enclosingRefPath of the deps keyword), (b) resolvedFromRef of the
+  merged schema, (c) resolvedFromRef of each materialized property of the merged schema.
+- if/then + allOf(retrieve-merge) throws: getObjectDefaults childRecurseList = _recurseList + materializedRefs,
+  where materializedRefs = resolvedFromRef of each retrieved property that is an object WITHOUT
+  REF_SIBLING_BRANCHES (sibling-branch markers mean second use, not recursion - the #5434-style false cycle:
+  "a dependencies branch that stood beside the $ref" tests catch this).
 
-## Mechanism B: deps-entry OVERFILL one level (3 tests: deps-entry pair + #5493 root-level/property pair)
+## REMAINING 3 (all array/additionalProperties allOf throws):
 
-got {a:'x', child:{a:'x'}}, want {a:'x'}. "The entry's content is the definition itself, so the recursion
-adds no level of its own."
-Path: computeDefaults DEPENDENCIES_KEY branch (getDefaultFormState.ts:392) calls resolveDependencies with
-enclosingRefPath(schema, _recurseList, DEPENDENCIES_KEY); the merged entry schema then computes its properties
-(child: {$ref: node}) against a list that lacks the definition's own ref -> child expands one more level.
-Contrast: getObjectDefaults:700 childRecurseList = _recurseList DELIBERATELY does not re-add refs expanded by
-the retrieve (the #5434 shared-ref false cycle). For DEPENDENCIES the opposite holds: the entry IS part of the
-definition, so the ref that materialized this object SHOULD join the list for the entry's compute.
-Fix direction: in the deps branch (or in resolveDependencies' recursion), include resolvedFromRef(schema) /
-the seed that was stripped for the retrieve back ON the path for the entry's property compute.
-
-## Remaining value reds beyond A+B: deep-default-fill family, tags parity, additionalProperties,
-
-allOf-of-array-items (see zz-failures-e45a6bd3.txt sections 1-7).
+- stops at a recursion reached through the allOf of array items
+- stops at a recursion reached through the allOf of additionalProperties
+- an allOf holding the ref in array items, with populateDefaults
+  Mechanism: the loop is INSIDE retrieveSchema: computeDefaults:507 (allOf-populate branch for non-object schemas)
+  calls retrieveSchemaInternal(schema, pathWithOwnRef = enclosingRefPath(schema, _recurseList)) - the array schema
+  carries no marker so the path never gains the enclosing definition's ref. The allOf-ELEMENT retrieve at
+  retrieveSchema.ts:466-475 passes enclosingRefPath(schema, recurseList, ALL_OF_KEY) = unchanged for inline
+  schemas, so each nested allOf-element retrieve starts a FRESH walk with passCount 0 and recurseList=[] and the
+  flagged items.$ref expands "one more level" (the deliberate first-pass rule at resolveAllReferences:713-740)
+  forever. Fix direction: thread the accumulated pathList from the resolveAllReferences walk into resolveSchema's
+  allOf-element retrieves (retrieveSchema.ts:466), or seed pathWithOwnRef in the computeDefaults:497 allOf branch
+  with closingRefsOf(schema) so the first retrieve starts with the enclosing ref on the path. Careful: expected
+  values want ONE more level filled before stopping (e.g. child:[{x:{name:'n', child:[{}]}}] for the if/then
+  variant) - a seed must count, not forbid, the first expansion.
 
 ## Then: re-pins, #5501 SchemaField tests + 773 regression test, changelog to CHANGELOG-v7.md,
 
