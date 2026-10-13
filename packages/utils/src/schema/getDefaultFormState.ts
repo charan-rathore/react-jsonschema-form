@@ -408,9 +408,24 @@ export function computeDefaults<
     // is the definition's own, so the reference that materialized this schema stays on it, and a `$ref` the
     // entry holds back to that definition reads as the recursion it is rather than expanding one more level.
     const dependenciesPath = enclosingRefPath<S>(schema, updatedRecurseList, DEPENDENCIES_KEY);
+    // A dependency entry that is a plain `$ref` already expanded on this path materializes the very definition
+    // this frame is computing. Expanding it again hands the same form data to the same reference, so the data
+    // never shrinks and the `$ref` branch's stop never fires: leave the entry out. The frame's own schema is
+    // the content the entry would merge in, so nothing it described is lost.
+    let schemaToResolve = schema;
+    // Read without a fallback: reaching this branch means the key is present, and a non-object value fails
+    // validation long before defaults are computed, so there is no empty side for a test to take
+    const dependencyEntries = Object.entries(schema[DEPENDENCIES_KEY] as Record<string, unknown>);
+    const liveEntries = dependencyEntries.filter(
+      ([, entry]) =>
+        !(isObject(entry) && REF_KEY in entry && updatedRecurseList.includes((entry as S)[REF_KEY] as string)),
+    );
+    if (liveEntries.length !== dependencyEntries.length) {
+      schemaToResolve = { ...schema, [DEPENDENCIES_KEY]: Object.fromEntries(liveEntries) };
+    }
     const resolvedSchema = resolveDependencies<T, S, F>(
       context,
-      schema,
+      schemaToResolve,
       rootSchema,
       false,
       dependenciesPath,
