@@ -8,7 +8,7 @@ import {
   findSchemaDefinitionWithBaseURIOrUndefined,
 } from '../src/findSchemaDefinition.ts';
 import type { GenericObjectType, RJSFSchema } from '../src/index.ts';
-import { createSchemaUtils, findSchemaDefinition, ID_KEY } from '../src/index.ts';
+import { createSchemaUtils, findSchemaDefinition, ID_KEY, retrieveSchema } from '../src/index.ts';
 import getTestValidator from './testUtils/getTestValidator.ts';
 
 const testValidator = getTestValidator({});
@@ -290,7 +290,7 @@ describe('restoreOriginalRefs()', () => {
     expect(resolved.$id).toEqual('http://ex.com/a.json');
     expect((resolved.properties as GenericObjectType).bb).toEqual({ type: 'string' });
   });
-  it('reads a root edited in place after a no-op normalization as it now stands', () => {
+  it('snapshots the root at construction on every draft, while the standalone API re-reads an edited root', () => {
     const root: RJSFSchema = {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $defs: { a: { type: 'string', title: 'A' } },
@@ -298,10 +298,18 @@ describe('restoreOriginalRefs()', () => {
     };
     const utils = createSchemaUtils({ validator: testValidator }, root);
     utils.retrieveSchema((root.properties as GenericObjectType).x as RJSFSchema);
-    (root.$defs as GenericObjectType).p = { $id: 'nested/parent.json', properties: { c: { $ref: 'child.json' } } };
-    (root.$defs as GenericObjectType).c = { $id: 'nested/child.json', title: 'CHILD' };
-    (root.properties as GenericObjectType).y = { $ref: 'nested/parent.json' };
-    const resolved = utils.retrieveSchema((root.properties as GenericObjectType).y as RJSFSchema) as RJSFSchema;
+    // Replacing `$defs` detaches the edit from the construction-time snapshot the instance holds
+    root.$defs = {
+      a: { type: 'string', title: 'A' },
+      p: { $id: 'nested/parent.json', properties: { c: { $ref: 'child.json' } } },
+      c: { $id: 'nested/child.json', title: 'CHILD' },
+    };
+    const y: RJSFSchema = { $ref: 'nested/parent.json' };
+    // The stored root is a snapshot, the way a 2020-12 root with an `$id` already was: the instance
+    // cannot see the replacement
+    expect(() => utils.retrieveSchema(y)).toThrow('Could not find a definition for nested/parent.json');
+    // The standalone API normalizes the root it is passed on each call, so it reads the edit
+    const resolved = retrieveSchema({ validator: testValidator }, y, root) as RJSFSchema;
     expect(((resolved.properties as GenericObjectType).c as RJSFSchema).title).toEqual('CHILD');
   });
   it('returns the same object when nothing in the walked keywords was rewritten', () => {
@@ -373,10 +381,11 @@ describe('findSchemaDefinition()', () => {
       'Could not find a definition for /bundled.ref.json',
     );
   });
-  it('throws error when bundled ref with explicit baseURI are not part of JSON Schema Draft 2020-12', () => {
-    expect(() => findSchemaDefinition('#/properties/num', schema, 'https://example.com/bundled.ref.json')).toThrow(
-      'Could not find a definition for #/properties/num',
-    );
+  it('resolves a bundled ref with an explicit baseURI on any draft', () => {
+    // The embedded-resource lookup runs on every draft, the way the non-`#` branch already did
+    expect(findSchemaDefinition('#/properties/num', schema, 'https://example.com/bundled.ref.json')).toEqual({
+      type: 'integer',
+    });
   });
   it.each(['https://example.com/child.json', 'child.json'])('resolves the absolute URI of a nested $id %s', ($id) => {
     const child: RJSFSchema = { $id, type: 'string' };
@@ -918,10 +927,10 @@ describe('findSchemaDefinitionRecursive()', () => {
       'Could not find a definition for /bundled.ref.json',
     );
   });
-  it('throws error when bundled ref with explicit baseURI are not part of JSON Schema Draft 2020-12', () => {
-    expect(() =>
+  it('resolves a bundled ref with an explicit baseURI on any draft', () => {
+    expect(
       findSchemaDefinitionRecursive('#/properties/num', schema, [], 'https://example.com/bundled.ref.json'),
-    ).toThrow('Could not find a definition for #/properties/num');
+    ).toEqual({ type: 'integer' });
   });
   it('correctly resolves absolute bundled refs within a JSON Schema Draft 2020-12', () => {
     expect(findSchemaDefinitionRecursive('#/$defs/bundledAbsoluteRef', bundledSchema)).toStrictEqual(internalSchema);

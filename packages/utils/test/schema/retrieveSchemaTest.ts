@@ -910,7 +910,9 @@ export default function retrieveSchemaTest(testValidator: TestValidatorType) {
         anyOf: [{ $ref: '#/$defs/big' }, { $ref: '#/$defs/big' }],
       };
       const resolved = resolveAllReferences(root, root, []);
-      expect(resolved.anyOf![1]).toStrictEqual({ $ref: '#/$defs/big' });
+      // The walk reads the normalized root when the schema IS the root, so the collapsed option keeps the
+      // resolved spelling the walk carried
+      expect(resolved.anyOf![1]).toStrictEqual({ $ref: 'https://example.com/r.json#/$defs/big' });
     });
     it('marks a pointer into a nested resource distinctly from the same pointer into the root', () => {
       // The root's `#/$defs/x` and the nested resource's `#/$defs/x` are different schemas: the marker each
@@ -1097,7 +1099,15 @@ export default function retrieveSchemaTest(testValidator: TestValidatorType) {
       expect(retrieveSchema({ validator: testValidator }, schema, schema)).toEqual({
         $id: 'https://jsonschema.dev/schemas/examples/non-negative-integer-bundle',
         $schema: 'https://json-schema.org/draft/2020-12/schema',
-        $defs: definitions,
+        // The walk reads the normalized root when the schema IS the root, so the carried `$defs` hold the
+        // refs in their resolved spelling
+        $defs: {
+          ...definitions,
+          'https://jsonschema.dev/schemas/mixins/non-negative-integer': {
+            ...definitions['https://jsonschema.dev/schemas/mixins/non-negative-integer'],
+            $ref: 'https://jsonschema.dev/schemas/mixins/integer',
+          },
+        },
         minimum: 0,
         type: 'integer',
         [RJSF_REF_KEY]: 'https://jsonschema.dev/schemas/mixins/non-negative-integer',

@@ -269,7 +269,9 @@ function getByPointerWithScope<S extends StrictRJSFSchema = RJSFSchema>(
 
 /** Applies `fn` to the direct subschemas of `schema` (following the keyword shapes above), rebuilding only
  * the containers whose contents changed. `extraChanges` carries updates to the schema's own data keys,
- * included in the same rebuild. When neither a subschema nor an extra change differs,
+ * included in the same rebuild. `onlyKeys` limits the walk to the keywords its predicate accepts for a
+ * given value, so a caller can match the shape another walk follows. When neither a
+ * subschema nor an extra change differs,
  * `schema` itself is returned, so identity means nothing changed. The rebuild spreads the original node and
  * overwrites only the changed keys, so symbol keys (such as the rjsf flag Symbols) survive it.
  */
@@ -277,7 +279,7 @@ function mapSubschemas<S extends StrictRJSFSchema = RJSFSchema>(
   schema: S,
   fn: (subSchema: S) => S,
   extraChanges?: GenericObjectType,
-  onlyKeys?: ReadonlySet<string>,
+  onlyKeys?: (key: string, value: unknown) => boolean,
 ): S {
   const changed: GenericObjectType = {};
   let anyChanged = false;
@@ -288,7 +290,7 @@ function mapSubschemas<S extends StrictRJSFSchema = RJSFSchema>(
     }
   };
   for (const [key, value] of Object.entries(schema)) {
-    if (onlyKeys !== undefined && !onlyKeys.has(key)) {
+    if (onlyKeys !== undefined && !onlyKeys(key, value)) {
       continue;
     }
     const shape = keywordShape(key, value);
@@ -407,7 +409,9 @@ export function makeAllReferencesAbsolute<S extends StrictRJSFSchema = RJSFSchem
   return visit(schema, typeof schema[ID_KEY] === 'string' ? schema[ID_KEY] : baseURI);
 }
 
-/** The keywords `restoreOriginalRefs` rebuilds, matching the keywords whose refs the resolution walk resolves */
+/** The keywords `restoreOriginalRefs` rebuilds, matching the keywords whose refs the resolution walk resolves
+ * (an `items` only in its single-schema shape: tuple items are data to that walk, and to this one)
+ */
 const RESTORE_KEYS: ReadonlySet<string> = new Set([PROPERTIES_KEY, ITEMS_KEY]);
 const RESTORE_KEYS_WITH_OPTIONS: ReadonlySet<string> = new Set([PROPERTIES_KEY, ITEMS_KEY, ANY_OF_KEY, ONE_OF_KEY]);
 
@@ -423,11 +427,17 @@ const RESTORE_KEYS_WITH_OPTIONS: ReadonlySet<string> = new Set([PROPERTIES_KEY, 
  */
 export function restoreOriginalRefs<S extends StrictRJSFSchema = RJSFSchema>(schema: S, restoreOptions = false): S {
   const original = originalRefs.get(schema);
+  const keys = restoreOptions ? RESTORE_KEYS_WITH_OPTIONS : RESTORE_KEYS;
+  // The resolution walk skips array-valued `items` (`!Array.isArray(resolvedSchema.items)` in
+  // `retrieveSchema`), so a tuple item's ref is never resolved by it: restoring the author's spelling there
+  // would send a later `retrieveSchema` looking for the resource relative to the root. Array-valued `items`
+  // keeps the resolved spelling the normalization walk left.
+  const restoreKey = (key: string, value: unknown) => keys.has(key) && !(key === ITEMS_KEY && Array.isArray(value));
   return mapSubschemas<S>(
     schema,
     (subSchema) => restoreOriginalRefs(subSchema, restoreOptions),
     original !== undefined ? { [REF_KEY]: original } : undefined,
-    restoreOptions ? RESTORE_KEYS_WITH_OPTIONS : RESTORE_KEYS,
+    restoreKey,
   );
 }
 
@@ -456,12 +466,18 @@ export function normalizeRootReferences<S extends StrictRJSFSchema = RJSFSchema>
     rootSchema,
     typeof rootSchema[ID_KEY] === 'string' ? rootSchema[ID_KEY] : '#',
   );
-  // Only a root this function produced is marked: marking the input when nothing changed would freeze it,
-  // and a root edited in place after a no-op normalization must be read as it now stands on the next call
   if (normalized !== rootSchema) {
+    // Only a root this function produced is marked: marking the input when something changed would freeze it,
+    // and a root edited in place after a normalization must be read as it now stands on the next call
     normalizedRoots.add(normalized);
+    return normalized;
   }
-  return normalized;
+  // A no-op normalization gets a marked shallow copy: a caller that stores the result (createSchemaUtils)
+  // then holds a root the per-call wrapper recognizes without a fresh walk, while the caller's original
+  // stays unmarked, so a root edited in place is still re-read as it stands when it is passed in again
+  const copy = { ...rootSchema };
+  normalizedRoots.add(copy);
+  return copy;
 }
 
 /** Splits out the value at the `key` in `object` from the `object`, returning an array that contains in the first
@@ -558,11 +574,11 @@ function lookupSchemaDefinition<S extends StrictRJSFSchema = RJSFSchema>(
       const rootScope = ID_KEY in rootSchema && typeof rootSchema[ID_KEY] === 'string' ? rootSchema[ID_KEY] : baseURI;
       return getByPointerWithScope<S>(rootSchema, decodedRef, rootScope);
     }
-    if (rootSchema[SCHEMA_KEY] === JSON_SCHEMA_DRAFT_2020_12) {
-      const resource = findEmbeddedSchemaRecursive<S>(rootSchema, baseURI.replace(/\/$/, ''), '', baseURI);
-      if (resource !== undefined) {
-        return getByPointerWithScope<S>(resource.schema, decodedRef, resource.baseURI);
-      }
+    // The non-`#` branch below finds embedded resources on every draft: a `#` ref chained from one resolves
+    // inside it the same way, whatever the root's `$schema` says
+    const resource = findEmbeddedSchemaRecursive<S>(rootSchema, baseURI.replace(/\/$/, ''), '', baseURI);
+    if (resource !== undefined) {
+      return getByPointerWithScope<S>(resource.schema, decodedRef, resource.baseURI);
     }
     return undefined;
   }
