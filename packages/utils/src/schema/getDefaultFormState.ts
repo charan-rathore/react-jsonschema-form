@@ -415,7 +415,7 @@ export function computeDefaults<
     [schemaToCompute] = resolvedSchema; // pick the first element from resolve dependencies
     // An entry that is itself a `$ref` materializes the definition into the merged schema: that expansion joins
     // the path, so the definition's own content below does not resolve the same entry back in.
-    const entryRef = resolvedFromRef<S>(schemaToCompute ?? undefined);
+    const entryRef = resolvedFromRef<S>(schemaToCompute);
     if (entryRef && !updatedRecurseList.includes(entryRef)) {
       updatedRecurseList = updatedRecurseList.concat(entryRef);
     }

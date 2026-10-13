@@ -1051,6 +1051,53 @@ export default function retrieveSchemaTest(testValidator: TestValidatorType) {
               },
             });
           });
+          it('flags a cycle that closes through a second definition in a branch', () => {
+            const inner: RJSFSchema = {
+              type: 'object',
+              properties: { child: { $ref: '#/definitions/outer' } },
+            };
+            const shape: RJSFSchema = {
+              type: 'object',
+              properties: { name: { type: 'string' }, extra: false as unknown as RJSFSchema },
+              if: {},
+              then: {
+                allOf: [
+                  { if: { required: ['x'] } },
+                  { $ref: '#/definitions/missing' },
+                  { $ref: '#/definitions/inner' },
+                ],
+              },
+              else: { properties: { e: { type: 'string' } } },
+            };
+            const outer: RJSFSchema = {
+              type: 'object',
+              properties: { p: { $ref: '#/definitions/shape' } },
+            };
+            const schema: RJSFSchema = {
+              definitions: { inner, shape, outer },
+              $ref: '#/definitions/outer',
+            };
+            const result = retrieveSchema({ validator: testValidator }, schema, schema, {});
+            // The branch search follows a ref into the definition it names, so the cycle closing back on the path
+            // through `inner` flags the property the branch belongs to. A ref that does not resolve is skipped by
+            // the search and throws where it is actually expanded, and a boolean subschema or a branch that is
+            // not there does not close
+            expect(result.properties!.p).toEqual({
+              type: 'object',
+              properties: { name: { type: 'string' }, extra: false },
+              if: {},
+              then: {
+                allOf: [
+                  { if: { required: ['x'] } },
+                  { $ref: '#/definitions/missing' },
+                  { $ref: '#/definitions/inner' },
+                ],
+              },
+              else: { properties: { e: { type: 'string' } } },
+              [RJSF_REF_KEY]: '#/definitions/shape',
+              [RJSF_REF_CYCLE_KEY]: true,
+            });
+          });
           it('collapses a self-referencing property after one level', () => {
             const node: RJSFSchema = {
               type: 'object',
