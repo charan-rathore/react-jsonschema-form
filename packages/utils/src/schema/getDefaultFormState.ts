@@ -520,8 +520,17 @@ export function computeDefaults<
     );
     // The merge expands a `$ref` among the subschemas the way the `$ref` branch above expands one, so the ref it
     // expanded joins the path the nested compute runs against - built on the cycle-seeded path, so the seeds a
-    // flagged schema arrived with stay on for the content below.
-    updatedRecurseList = enclosingRefPath<S>(schemaToCompute, enclosingRefPath<S>(schema, updatedRecurseList));
+    // flagged schema arrived with stay on for the content below. The schema's own arrival reference joins it
+    // only when the `allOf` itself declares a `$ref`: then the merged content's references back to the arrival
+    // reference are the recursion to stop. An `allOf` that declares none merges configuration, not content -
+    // the arrival expansion the caller's retrieve already ran is not counted a second time, the same reason a
+    // materialized property is not counted at the top of this function.
+    const mergeDeclaresRef =
+      Array.isArray(schema[ALL_OF_KEY]) &&
+      (schema[ALL_OF_KEY] as S[]).some((entry) => isObject(entry) && REF_KEY in entry);
+    updatedRecurseList = mergeDeclaresRef
+      ? enclosingRefPath<S>(schemaToCompute, enclosingRefPath<S>(schema, updatedRecurseList))
+      : updatedRecurseList;
   }
 
   if (schemaToCompute) {
@@ -747,14 +756,24 @@ export function getObjectDefaults<
       shouldRetrieveSchema && Reflect.get(retrievedSchema, REF_SIBLING_BRANCHES) === undefined
         ? resolvedFromRef<S>(retrievedSchema)
         : undefined;
-    // A property the retrieve materialized from a plain `$ref` does NOT join the path its own compute runs
-    // against: the expansion already happened at retrieve time, so counting it here stops a plain recursive
-    // schema a level earlier than it has ever stopped (the depth a root-level `$ref` produces is two levels of
-    // defaults, not one). The recursion such a property leads into arrives flagged `RJSF_REF_CYCLE_KEY` by the
-    // retrieve, and `computeDefaults()` seeds the path from the flagged schema's own closing references.
-    const childRecurseList = mergedRef && !_recurseList.includes(mergedRef)
-      ? _recurseList.concat(mergedRef)
-      : _recurseList;
+    // A property THIS frame's own retrieve materialized from a `$ref` joins the path its compute runs against:
+    // the expansion happened on this descent, and the recursion it leads into is not always flagged -
+    // `resolveAllReferences()` deliberately leaves array items unflagged, so the path is the only thing the
+    // level below stops at. A property that arrived already materialized - the root retrieve of
+    // `getDefaultFormState()` ran ahead of the whole computation - does NOT join it: counting that expansion
+    // stops a plain recursive schema a level earlier than it has ever stopped (the depth a root-level `$ref`
+    // produces is two levels of defaults, not one). That recursion arrives flagged `RJSF_REF_CYCLE_KEY`, and
+    // `computeDefaults()` seeds the path from the flagged schema's own closing references.
+    const materializedRefs = shouldRetrieveSchema
+      ? Object.values(retrievedSchema.properties ?? {})
+          .filter((value) => isObject(value) && Reflect.get(value, REF_SIBLING_BRANCHES) === undefined)
+          .map((value) => resolvedFromRef<S>(value as S))
+          .filter((ref): ref is string => ref !== undefined)
+      : [];
+    const seededRefs = (mergedRef ? [mergedRef] : [])
+      .concat(materializedRefs)
+      .filter((ref, idx, all) => all.indexOf(ref) === idx && !_recurseList.includes(ref));
+    const childRecurseList = _recurseList.concat(seededRefs);
     const parentConst = retrievedSchema[CONST_KEY];
     const objectDefaults = Object.keys(retrievedSchema.properties ?? {}).reduce(
       (acc: GenericObjectType, key: string) => {

@@ -1546,7 +1546,10 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
 
           test('stops a recursion under a populated allOf at the same depth as the same one without it', () => {
             // The reference a schema was resolved from counts for everything the schema holds, whether an `allOf`
-            // merged it in or not, so both shapes stop the recursion at the same depth
+            // merged it in or not, so both shapes stop the recursion at the same depth: two levels, the depth the
+            // plain shape has always produced - a root-level `$ref` computes with the path empty, so the items
+            // recursion gets one expansion before its own level stops (on v7 the `allOf` shape overflows the
+            // stack instead of stopping)
             const tags: RJSFSchema = { type: 'array', minItems: 1, items: { $ref: '#/definitions/tags' } };
             const populated = (definition: RJSFSchema) => {
               const schema: RJSFSchema = {
@@ -1560,8 +1563,8 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
                 { schema, rootSchema: schema },
               );
             };
-            expect(populated(tags)).toEqual({ t: [undefined] });
-            expect(populated({ ...tags, allOf: [{ minItems: 1 }] })).toEqual({ t: [undefined] });
+            expect(populated(tags)).toEqual({ t: [[undefined]] });
+            expect(populated({ ...tags, allOf: [{ minItems: 1 }] })).toEqual({ t: [[undefined]] });
           });
         });
 
