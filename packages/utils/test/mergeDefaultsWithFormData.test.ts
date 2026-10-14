@@ -344,6 +344,73 @@ describe('mergeDefaultsWithFormData()', () => {
       });
     });
 
+    it('should override nested scalar values at every object depth', () => {
+      expect(mergeDefaultsWithFormData({ a: { b: 'd' } }, { a: { b: 'f' } }, true, false, true)).toEqual({
+        a: { b: 'd' },
+      });
+    });
+
+    it('should apply defaultSupercedesUndefined one level down', () => {
+      expect(mergeDefaultsWithFormData({ a: { x: 1 } }, { a: { x: undefined } }, false, true)).toEqual({
+        a: { x: 1 },
+      });
+    });
+
+    it('should apply defaultSupercedesUndefined at every object depth', () => {
+      expect(mergeDefaultsWithFormData({ a: { b: { x: 1 } } }, { a: { b: { x: undefined } } }, false, true)).toEqual({
+        a: { b: { x: 1 } },
+      });
+    });
+
+    it('should keep an explicit nested undefined when defaultSupercedesUndefined is off', () => {
+      expect(mergeDefaultsWithFormData({ a: { x: 1 } }, { a: { x: undefined } }, false, false)).toEqual({
+        a: { x: undefined },
+      });
+    });
+
+    it('should keep form data keys inherited from Object.prototype', () => {
+      const formData = JSON.parse('{"toString":"abc"}');
+      const result = mergeDefaultsWithFormData({}, formData, true, false, true);
+
+      expect(result).toEqual(formData);
+    });
+
+    it('should not treat inherited default keys as present', () => {
+      expect(
+        mergeDefaultsWithFormData<Record<string, unknown>>({ a: 1 }, { constructor: 'x' }, true, false, true),
+      ).toEqual({
+        a: 1,
+        constructor: 'x',
+      });
+    });
+
+    it('should preserve an own __proto__ form data key without changing the result prototype', () => {
+      const defaults = JSON.parse('{"__proto__":{"polluted":false}}');
+      const formData = JSON.parse('{"__proto__":{"polluted":true}}');
+      const result = mergeDefaultsWithFormData(defaults, formData, true, false, true) as Record<string, unknown>;
+
+      expect(Object.keys(result)).toContain('__proto__');
+      expect(Object.hasOwn(result, '__proto__')).toBe(true);
+      expect(result.polluted).toBeUndefined();
+    });
+
+    it('should preserve an own __proto__ key on the shallow-merge shortcut path', () => {
+      const defaults = JSON.parse('{"__proto__":{"a":1}}');
+      const formData = JSON.parse('{"__proto__":{"b":2}}');
+      const result = mergeDefaultsWithFormData(defaults, formData) as Record<string, unknown>;
+
+      expect(Object.hasOwn(result, '__proto__')).toBe(true);
+      expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).toEqual({ a: 1, b: 2 });
+      expect(result.polluted).toBeUndefined();
+      expect(({} as Record<string, unknown>).b).toBeUndefined();
+    });
+
+    it('should preserve Object.prototype keys in form data without override mode', () => {
+      const formData = JSON.parse('{"toString":"abc"}');
+
+      expect(mergeDefaultsWithFormData({}, formData)).toEqual(formData);
+    });
+
     it('should recursively merge File objects', () => {
       const file = new File(['test'], 'test.txt');
       const obj1 = {

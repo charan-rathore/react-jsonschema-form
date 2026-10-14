@@ -71,9 +71,9 @@ export default function mergeDefaultsWithFormData<T = unknown>(
     const acc = { ...defaultsObj } as { [key in keyof T]: any }; // Prevent mutation of source object.
     return Object.keys(formDataObj).reduce((accumulator, key) => {
       const keyValue = formDataObj[key];
-      const keyExistsInDefaults = defaultsObj !== undefined && key in defaultsObj;
-      const keyExistsInFormData = key in formDataObj;
-      const keyDefault = defaultsObj?.[key] ?? {};
+      const keyExistsInDefaults = defaultsObj !== undefined && Object.hasOwn(defaultsObj, key);
+      const keyDefaultValue = keyExistsInDefaults ? defaultsObj[key] : undefined;
+      const keyDefault = keyDefaultValue ?? {};
       // If any direct child of this key's default is itself an object or array,
       // the shallow spread below would bypass its merge rules. Route those cases
       // to the recursive path; the recursive call repeats this check one level deeper.
@@ -82,26 +82,36 @@ export default function mergeDefaultsWithFormData<T = unknown>(
         isObject(keyDefault) &&
         Object.values(keyDefault).some((v) => isObject(v) || Array.isArray(v));
 
-      const keyDefaultIsObject = keyExistsInDefaults && isObject(defaultsObj?.[key]);
-      const keyHasFormDataObject = keyExistsInFormData && isObject(keyValue);
+      const keyDefaultIsObject = keyExistsInDefaults && isObject(keyDefaultValue);
+      const keyHasFormDataObject = isObject(keyValue);
 
-      if (keyDefaultIsObject && keyHasFormDataObject && !defaultValueNeedsDeepMerge) {
-        accumulator[key as keyof T] = {
-          ...defaultsObj?.[key],
+      // The shortcut spreads form data over defaults, so it keeps an explicit `undefined` one level down.
+      // Skip it whenever either flag would route such a key through the recursive merge instead.
+      if (keyDefaultIsObject && keyHasFormDataObject && !defaultValueNeedsDeepMerge && !overrideFormDataWithDefaults && !defaultSupercedesUndefined) {
+        const value = {
+          ...keyDefaultValue,
           ...keyValue,
         };
+        if (key === '__proto__') {
+          Object.defineProperty(accumulator, key, { value, enumerable: true, writable: true, configurable: true });
+        } else {
+          accumulator[key as keyof T] = value;
+        }
         return accumulator;
       }
 
-      accumulator[key as keyof T] = mergeDefaultsWithFormData<T>(
-        defaultsObj?.[key],
+      const value = mergeDefaultsWithFormData<T>(
+        keyDefaultValue,
         keyValue,
         mergeExtraArrayDefaults,
         defaultSupercedesUndefined,
-        // overrideFormDataWithDefaults can be true only when the key value exists in defaults
-        // Or if the key value doesn't exist in formData
-        overrideFormDataWithDefaults && (keyExistsInDefaults || !keyExistsInFormData),
+        overrideFormDataWithDefaults && keyExistsInDefaults,
       );
+      if (key === '__proto__') {
+        Object.defineProperty(accumulator, key, { value, enumerable: true, writable: true, configurable: true });
+      } else {
+        accumulator[key as keyof T] = value;
+      }
       return accumulator;
     }, acc);
   }

@@ -69,6 +69,15 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
     });
 
     describe('object schemas', () => {
+      it('preserves Object.prototype-named form data keys when merging defaults', () => {
+        const schema: RJSFSchema = { type: 'object', properties: {} };
+        const formData = JSON.parse('{"toString":"abc"}');
+
+        expect(getDefaultFormState({ validator: testValidator }, { schema, rootSchema: schema, formData })).toEqual(
+          formData,
+        );
+      });
+
       describe('schema with a ref', () => {
         const schema: RJSFSchema = {
           definitions: {

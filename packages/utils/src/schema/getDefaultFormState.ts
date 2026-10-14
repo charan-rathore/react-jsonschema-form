@@ -553,7 +553,11 @@ export function computeDefaults<
     const { mergeExtraDefaults } = arrayMinItems;
 
     const matchingFormData = ensureFormDataMatchingSchema(context, schema, rootSchema, rawFormData);
-    if (!isObject(rawFormData) || ALL_OF_KEY in schema) {
+    // A select field whose options are objects still needs the merge: the form data is an object, but it is the
+    // field's selected value, and `matchingFormData` has already been validated against the options.
+    const isSelectWithObjectData =
+      isObject(rawFormData) && !isConstant<S>(schema) && isSelect<T, S, F>(context, schema, rootSchema);
+    if (!isObject(rawFormData) || ALL_OF_KEY in schema || isSelectWithObjectData) {
       // If the formData is not an object which means it's a primitive field, then we need to merge the defaults into the formData.
       // Or if the schema has allOf, we need to merge the defaults into the formData because we don't compute the defaults for allOf.
       defaultsWithFormData = mergeDefaultsWithFormData<T>(
