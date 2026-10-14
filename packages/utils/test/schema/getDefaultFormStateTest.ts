@@ -3132,6 +3132,51 @@ export default function getDefaultFormStateTest(testValidator: TestValidatorType
         expect(ensureFormDataMatchingSchema({ validator: testValidator }, schema, schema, 'a')).toEqual('a');
       });
 
+      it.each([
+        [{ type: 'string', const: 'x' }, 'x'],
+        [{ type: 'string' }, undefined],
+        [{ type: 'array', default: [1, 2] }, [1, 2]],
+        [{ type: ['object', 'null'] }, { b: 2 }],
+        [{ type: ['string', 'object'] }, { b: 2 }],
+        [{ default: 'foo' }, { '0': 'f', '1': 'o', '2': 'o', b: 2 }],
+        [{ type: 'string', default: 'ok' }, 'ok'],
+        [{ type: 'number' }, undefined],
+        [{ type: 'boolean' }, undefined],
+        [{ type: 'integer' }, undefined],
+        [{ type: 'null' }, undefined],
+      ] as const)('replaces incompatible object form data using schema %j', (schema, expected) => {
+        expect(
+          getDefaultFormState({ validator: testValidator }, { schema: schema as RJSFSchema, formData: { b: 2 } }),
+        ).toEqual(expected);
+      });
+
+      it.each([
+        [{ type: 'integer' }, 5],
+        [{ type: 'null' }, null],
+        [{ type: 'string' }, ['a']],
+        [{ type: 'array' }, 'foo'],
+        [{ type: 'string', format: 'date-time' }, { b: 2 }],
+        [{ type: 'string' }, { valueOf: (): number => 0 }],
+        [{ type: 'string' }, new Date(0)],
+      ] as const)('keeps form data matching schema %j', (schema, formData) => {
+        expect(getDefaultFormState({ validator: testValidator }, { schema, formData })).toEqual(formData);
+      });
+
+      it('replaces form data when the schema declares an unknown type', () => {
+        expect(
+          getDefaultFormState(
+            { validator: testValidator },
+            { schema: { type: 'bogus' } as unknown as RJSFSchema, formData: { b: 2 } },
+          ),
+        ).toBeUndefined();
+      });
+
+      it('keeps undefined form data when the schema requires a string', () => {
+        expect(
+          getDefaultFormState({ validator: testValidator }, { schema: { type: 'string' }, formData: undefined }),
+        ).toBeUndefined();
+      });
+
       it('Test schema with valid formData with an enum and its default value', () => {
         schema = {
           type: 'string',

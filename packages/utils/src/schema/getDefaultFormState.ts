@@ -574,17 +574,65 @@ export function ensureFormDataMatchingSchema<
   const constTakesPrecedence = schemaToMatch[CONST_KEY] && defaultFormStateBehavior?.constAsDefaults === 'always';
   if (constTakesPrecedence) {
     validFormData = schemaToMatch.const as T;
-  } else if (isObject(validFormData) && isObject(schemaToMatch.properties)) {
-    validFormData = Object.keys(schemaToMatch.properties).reduce(
-      (acc: GenericObjectType, key: string) => {
-        const propertySchema = getPropertySchema<S>(schemaToMatch, key);
-        if (key in acc && (shouldRetrieveAllOf || (isObject(propertySchema) && ALL_OF_KEY in propertySchema))) {
-          acc[key] = ensureFormDataMatchingSchema<T, S, F>(context, propertySchema, rootSchema, acc[key]);
+  } else {
+    const schemaType = schemaToMatch.type;
+    let schemaTypes: string[] = [];
+    if (typeof schemaType === 'string') {
+      schemaTypes = [schemaType];
+    } else if (
+      Array.isArray(schemaType) &&
+      schemaType.length > 0 &&
+      schemaType.every((type) => typeof type === 'string')
+    ) {
+      schemaTypes = schemaType;
+    }
+    // Only object form data is ever replaced. Widgets already coerce scalar and array mismatches (a
+    // string filling a multi-select array, an epoch number filling a date-time string), and a string
+    // schema with a format is served by a widget that accepts valueOf-able objects, so none of those
+    // count as incompatible here.
+    const formDataMatchesSchemaType =
+      validFormData === undefined ||
+      schemaTypes.length === 0 ||
+      !isObject(validFormData) ||
+      // Objects with a custom `valueOf` (Date, moment, dayjs, Luxon) are scalar-like data that widgets coerce
+      (typeof (validFormData as GenericObjectType).valueOf === 'function' &&
+        (validFormData as GenericObjectType).valueOf !== Object.prototype.valueOf) ||
+      (schemaTypes.includes('string') && typeof schemaToMatch.format === 'string') ||
+      schemaTypes.some((type) => {
+        switch (type) {
+          case 'object':
+            return isObject(validFormData);
+          case 'array':
+            return Array.isArray(validFormData);
+          case 'string':
+          case 'number':
+          case 'boolean':
+            return typeof validFormData === type;
+          case 'integer':
+            return typeof validFormData === 'number';
+          case 'null':
+            return validFormData === null;
+          default:
+            return false;
         }
-        return acc;
-      },
-      { ...(validFormData as GenericObjectType) },
-    ) as T;
+      });
+
+    if (!formDataMatchesSchemaType) {
+      validFormData = (schemaToMatch[CONST_KEY] !== undefined ? schemaToMatch.const : schemaToMatch[DEFAULT_KEY]) as
+        | T
+        | undefined;
+    } else if (isObject(validFormData) && isObject(schemaToMatch.properties)) {
+      validFormData = Object.keys(schemaToMatch.properties).reduce(
+        (acc: GenericObjectType, key: string) => {
+          const propertySchema = getPropertySchema<S>(schemaToMatch, key);
+          if (key in acc && (shouldRetrieveAllOf || (isObject(propertySchema) && ALL_OF_KEY in propertySchema))) {
+            acc[key] = ensureFormDataMatchingSchema<T, S, F>(context, propertySchema, rootSchema, acc[key]);
+          }
+          return acc;
+        },
+        { ...(validFormData as GenericObjectType) },
+      ) as T;
+    }
   }
 
   return validFormData;
