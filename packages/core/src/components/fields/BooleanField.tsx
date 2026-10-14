@@ -81,8 +81,10 @@ function BooleanField<
     // Applied through the `enumOptions` it labels, and ignored by constant options, so a widget mustn't apply it again
     enumNames: _enumNames,
     placeholder,
+    required: uiRequired,
     ...options
   } = getUiOptions<T, S, F>(uiSchema, globalUiOptions);
+  const widgetOptions = uiSchema?.['ui:required'] !== undefined ? { ...options, required: uiRequired } : options;
   const { Widget } = resolveWidget<T, S, F>(schema, widget ?? 'checkbox', widgets);
   const yes = translateString(TranslatableString.YesLabel);
   const no = translateString(TranslatableString.NoLabel);
@@ -182,7 +184,7 @@ function BooleanField<
 
   return (
     <Widget
-      options={{ ...options, enumOptions }}
+      options={{ ...widgetOptions, enumOptions }}
       schema={schema}
       uiSchema={uiSchema}
       id={fieldId}

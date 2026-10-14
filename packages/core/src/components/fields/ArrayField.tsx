@@ -212,8 +212,10 @@ function ArrayAsMultiSelect<
     widget = 'select',
     title: uiTitle,
     placeholder,
+    required: uiRequired,
     ...options
   } = getUiOptions<T[], S, F>(uiSchema, globalUiOptions);
+  const widgetOptions = uiSchema?.['ui:required'] !== undefined ? { ...options, required: uiRequired } : options;
   const { Widget } = resolveWidget<T[], S, F>(schema, widget, widgets);
   const label = uiTitle ?? schema.title ?? name;
   const displayLabel = schemaUtils.getDisplayLabel(schema, uiSchema, globalUiOptions);
@@ -225,7 +227,7 @@ function ArrayAsMultiSelect<
       onChange={onSelectChange}
       onBlur={onBlur}
       onFocus={onFocus}
-      options={{ ...options, enumOptions }}
+      options={{ ...widgetOptions, enumOptions }}
       schema={schema}
       uiSchema={uiSchema}
       registry={registry}
@@ -270,7 +272,14 @@ function ArrayAsCustomWidget<
     htmlName,
   } = props;
   const { widgets, schemaUtils, globalUiOptions } = registry;
-  const { widget, title: uiTitle, placeholder, ...options } = getUiOptions<T[], S, F>(uiSchema, globalUiOptions);
+  const {
+    widget,
+    title: uiTitle,
+    placeholder,
+    required: uiRequired,
+    ...options
+  } = getUiOptions<T[], S, F>(uiSchema, globalUiOptions);
+  const widgetOptions = uiSchema?.['ui:required'] !== undefined ? { ...options, required: uiRequired } : options;
   const { Widget } = resolveWidget<T[], S, F>(schema, widget, widgets);
   const label = uiTitle ?? schema.title ?? name;
   const displayLabel = schemaUtils.getDisplayLabel(schema, uiSchema, globalUiOptions);
@@ -282,7 +291,7 @@ function ArrayAsCustomWidget<
       onChange={onSelectChange}
       onBlur={onBlur}
       onFocus={onFocus}
-      options={options}
+      options={widgetOptions}
       schema={schema}
       uiSchema={uiSchema}
       registry={registry}
@@ -331,14 +340,16 @@ function ArrayAsFiles<
     widget = 'files',
     title: uiTitle,
     placeholder,
+    required: uiRequired,
     ...options
   } = getUiOptions<T[], S, F>(uiSchema, globalUiOptions);
+  const widgetOptions = uiSchema?.['ui:required'] !== undefined ? { ...options, required: uiRequired } : options;
   const { Widget } = resolveWidget<T[], S, F>(schema, widget, widgets);
   const label = uiTitle ?? schema.title ?? name;
   const displayLabel = schemaUtils.getDisplayLabel(schema, uiSchema, globalUiOptions);
   return (
     <Widget
-      options={options}
+      options={widgetOptions}
       id={id}
       name={name}
       multiple

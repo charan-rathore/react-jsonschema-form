@@ -1293,6 +1293,27 @@ describe('ArrayField', () => {
         expect(node.querySelector('#multiselect-placeholder')).toHaveTextContent('Pick some');
       });
 
+      it('does not pass global required to the widget unless the field uiSchema sets it', () => {
+        const widget = vi.fn((_: WidgetProps) => null);
+        const objectSchema = { type: 'object', properties: { values: schema } } as RJSFSchema;
+        createFormComponent({
+          schema: objectSchema,
+          widgets: { SelectWidget: widget },
+          uiSchema: { 'ui:globalOptions': { required: true } },
+        });
+        expect(widget.mock.lastCall![0].options).not.toHaveProperty('required');
+
+        createFormComponent({
+          schema: objectSchema,
+          widgets: { SelectWidget: widget },
+          uiSchema: {
+            'ui:globalOptions': { required: true },
+            values: { 'ui:required': true },
+          },
+        });
+        expect(widget.mock.lastCall![0].options).toHaveProperty('required', true);
+      });
+
       it('should handle a change event', async () => {
         const { node, onChange } = createFormComponent({ schema });
 

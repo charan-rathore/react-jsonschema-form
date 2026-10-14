@@ -235,6 +235,24 @@ describe('BooleanField', () => {
     ]);
   });
 
+  it('does not pass global required to the widget unless the field uiSchema sets it', () => {
+    const widget = vi.fn((_: WidgetProps) => null);
+    createFormComponent({
+      schema: { type: 'object', properties: { flag: { type: 'boolean' } } },
+      uiSchema: { 'ui:globalOptions': { required: true }, flag: { 'ui:widget': widget } },
+    });
+    expect(widget.mock.lastCall![0].options).not.toHaveProperty('required');
+
+    createFormComponent({
+      schema: { type: 'object', properties: { flag: { type: 'boolean' } } },
+      uiSchema: {
+        'ui:globalOptions': { required: true },
+        flag: { 'ui:required': true, 'ui:widget': widget },
+      },
+    });
+    expect(widget.mock.lastCall![0].options).toHaveProperty('required', true);
+  });
+
   it('should pass uiSchema to custom widget', () => {
     const CustomCheckboxWidget = ({ uiSchema }: WidgetProps) => (
       <div id='custom-ui-option-value'>{uiSchema?.custom_field_key['ui:options'].test}</div>

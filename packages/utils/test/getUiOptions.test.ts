@@ -92,6 +92,12 @@ describe('getUiOptions()', () => {
     expect(getUiOptions(uiSchema.multiOptions)).toEqual(results.multiOptions);
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
   });
+  it.each(['ui:definitions', 'ui:globalOptions'] as const)('does not return reserved %s as an option', (key) => {
+    expect(getUiOptions({ [key]: {} })).not.toHaveProperty(key.substring(3));
+  });
+  it('returns ui:fieldReplacesAnyOrOneOf as an option', () => {
+    expect(getUiOptions({ 'ui:fieldReplacesAnyOrOneOf': true })).toHaveProperty('fieldReplacesAnyOrOneOf', true);
+  });
   test.each<[string, Widget]>([
     ['memo()', memo(MyWidget)],
     ['forwardRef()', ForwardedWidget],

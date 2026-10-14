@@ -1,6 +1,6 @@
 import { isValidElement } from 'react';
 
-import { UI_OPTIONS_KEY, UI_WIDGET_KEY } from './constants.ts';
+import { UI_DEFINITIONS_KEY, UI_GLOBAL_OPTIONS_KEY, UI_OPTIONS_KEY, UI_WIDGET_KEY } from './constants.ts';
 import describeElementGivenAsComponent from './describeElementGivenAsComponent.ts';
 import isComponentType from './isComponentType.ts';
 import isObject from './isObject.ts';
@@ -49,7 +49,8 @@ export default function getUiOptions<
       );
     } else if (key === UI_OPTIONS_KEY && isObject(value)) {
       Object.assign(options, value);
-    } else {
+    } else if (key !== UI_GLOBAL_OPTIONS_KEY && key !== UI_DEFINITIONS_KEY) {
+      // The reserved ui:globalOptions and ui:definitions keys are read off the root uiSchema, never off widget options
       Object.assign(options, { [key.substring(3)]: value });
     }
   }
